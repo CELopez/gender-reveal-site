@@ -20,16 +20,21 @@ title: Gender Reveal - Create Magical Moments
         <div class="max-w-4xl mx-auto mb-16">
             <div class="bg-white rounded-3xl shadow-2xl p-8 mb-8">
                 <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Slot Machine Reveal</h2>
-                <div class="slot-preview bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-8 text-center">
+                <div class="slot-preview bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-8 text-center relative">
                     <div class="flex justify-center space-x-4 mb-6">
-                        <div class="slot-reel bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner">
-                            ?
+                        <div class="slot-reel-preview bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden" style="width: 80px; height: 80px;">
+                            <div class="preview-reel-item">?</div>
                         </div>
-                        <div class="slot-reel bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner">
-                            ?
+                        <div class="slot-reel-preview bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden" style="width: 80px; height: 80px;">
+                            <div class="preview-reel-item">?</div>
                         </div>
-                        <div class="slot-reel bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner">
-                            ?
+                        <div class="slot-reel-preview bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden" style="width: 80px; height: 80px;">
+                            <div class="preview-reel-item">?</div>
+                        </div>
+                    </div>
+                    <div class="slot-handle-preview absolute right-4 top-1/2 transform -translate-y-1/2">
+                        <div class="bg-red-500 rounded-full p-2 shadow-lg">
+                            <div class="w-4 h-8 bg-red-600 rounded-full"></div>
                         </div>
                     </div>
                     <p class="text-white text-lg opacity-75">Experience the thrill of a slot machine reveal</p>

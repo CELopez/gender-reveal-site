@@ -276,6 +276,12 @@ function updateConfirmationContent() {
 }
 
 function startReveal() {
+    // Validate selections before proceeding
+    if (!selectedAnimation || !selectedGender) {
+        alert('Please complete all steps before starting the reveal!');
+        return;
+    }
+    
     // Save selections to sessionStorage
     saveSelections();
     
@@ -288,8 +294,12 @@ function startReveal() {
     }
     
     // Navigate to reveal page with parameters
-    const baseUrl = document.querySelector('link[rel="stylesheet"]').href.replace('/assets/css/style.css', '');
-    const revealUrl = `${baseUrl}/reveal.html?animation=${selectedAnimation}&gender=${selectedGender}`;
+    // Use the Jekyll baseurl configuration
+    const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
+    const revealUrl = `${baseUrl}/reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
+    
+    // console.log('Using baseUrl:', baseUrl); // Debug log
+    // console.log('Navigating to:', revealUrl); // Debug log
     
     // Add fade transition
     document.body.style.opacity = '0';
@@ -307,7 +317,9 @@ function saveSelections() {
         timestamp: new Date().toISOString()
     };
     
+    // console.log('Saving selections:', selections); // Debug log
     sessionStorage.setItem('genderRevealSelections', JSON.stringify(selections));
+    // console.log('Selections saved to sessionStorage'); // Debug log
 }
 
 // Global functions
