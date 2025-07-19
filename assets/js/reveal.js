@@ -10,9 +10,14 @@ function initRevealPage() {
     // Get reveal data from URL parameters or sessionStorage
     revealData = getRevealData();
     
+    console.log('Reveal data:', revealData); // Debug log
+    
     if (!revealData || !revealData.animation || !revealData.gender) {
-        // Redirect back to choose page if no valid data
-        redirectToChoose();
+        console.log('No valid reveal data found, redirecting...'); // Debug log
+        // Add a small delay to prevent immediate redirect loops
+        setTimeout(() => {
+            redirectToChoose();
+        }, 1000);
         return;
     }
     
@@ -32,25 +37,35 @@ function initRevealPage() {
 }
 
 function getRevealData() {
+    // console.log('Getting reveal data...'); // Debug log
+    // console.log('Current URL:', window.location.href); // Debug log
+    
     // First try URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const animation = urlParams.get('animation');
     const gender = urlParams.get('gender');
     
+    // console.log('URL params - animation:', animation, 'gender:', gender); // Debug log
+    
     if (animation && gender) {
+        // console.log('Found valid URL parameters'); // Debug log
         return { animation, gender };
     }
     
     // Fallback to sessionStorage
     try {
         const stored = sessionStorage.getItem('genderRevealSelections');
+        // console.log('SessionStorage data:', stored); // Debug log
         if (stored) {
-            return JSON.parse(stored);
+            const parsed = JSON.parse(stored);
+            // console.log('Parsed sessionStorage:', parsed); // Debug log
+            return parsed;
         }
     } catch (e) {
         console.error('Error reading stored selections:', e);
     }
     
+    console.log('No valid reveal data found - redirecting to choose page'); // Keep this for troubleshooting
     return null;
 }
 
@@ -204,11 +219,26 @@ function startSlotMachineAnimation() {
         
         // Initialize slot machine animation
         if (typeof initSlotMachine === 'function') {
+            console.log('Starting slot machine animation for:', revealData.gender); // Debug log
             initSlotMachine(revealData.gender);
         } else {
-            console.error('Slot machine animation not loaded');
+            console.error('Slot machine animation not loaded - falling back to basic animation');
+            // Fallback animation
+            showBasicAnimation();
         }
+    } else {
+        console.error('Slot machine element not found');
     }
+}
+
+function showBasicAnimation() {
+    // Simple fallback animation if the slot machine script fails to load
+    const resultText = revealData.gender === 'boy' ? 'IT\'S A BOY!' : 'IT\'S A GIRL!';
+    setTimeout(() => {
+        if (typeof showResult === 'function') {
+            showResult(resultText, true);
+        }
+    }, 2000);
 }
 
 function showResult(resultText, isSuccess = true) {
@@ -292,14 +322,27 @@ function startConfetti() {
 }
 
 function replayAnimation() {
+    // Reset the slot machine first
+    if (typeof resetSlotMachine === 'function') {
+        resetSlotMachine();
+    }
+    
     // Hide result
     const result = document.getElementById('result');
     if (result) {
         result.classList.add('hidden');
     }
     
-    // Restart the animation
-    startSlotMachineAnimation();
+    // Reset slot machine opacity
+    const slotMachine = document.getElementById('slotMachine');
+    if (slotMachine) {
+        slotMachine.style.opacity = '1';
+    }
+    
+    // Restart the animation after a brief delay
+    setTimeout(() => {
+        startSlotMachineAnimation();
+    }, 500);
     
     // Track replay
     if (typeof trackEvent === 'function') {
@@ -311,8 +354,16 @@ function replayAnimation() {
 }
 
 function redirectToChoose() {
-    const baseUrl = window.location.origin + window.location.pathname.replace('/reveal.html', '');
-    window.location.href = baseUrl + '/choose.html';
+    // Clear any stored selections that might be invalid
+    sessionStorage.removeItem('genderRevealSelections');
+    
+    // Use the Jekyll baseurl configuration
+    const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
+    const chooseUrl = `${baseUrl}/choose.html`;
+    
+    console.log('Using baseUrl for redirect:', baseUrl); // Debug log
+    console.log('Redirecting to choose page:', chooseUrl); // Debug log
+    window.location.href = chooseUrl;
 }
 
 // Handle fullscreen change events

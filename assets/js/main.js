@@ -50,22 +50,66 @@ function initMainPage() {
     }
 
     function startPreviewAnimation() {
-        const reels = document.querySelectorAll('.slot-preview .slot-reel');
-        const symbols = ['B', 'O', 'Y', 'G', 'I', 'R', 'L'];
+        const reels = document.querySelectorAll('.slot-preview .preview-reel-item');
+        const symbols = ['B', 'O', 'Y', 'G', 'I', 'R', 'L', '★', '♦', '?'];
+        let animationStep = 0;
         
         previewInterval = setInterval(() => {
-            reels.forEach(reel => {
+            reels.forEach((reel, index) => {
+                // Create a more realistic slot machine effect
                 const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
                 reel.textContent = randomSymbol;
+                
+                // Add spinning effect
+                reel.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    reel.style.transform = 'translateY(0)';
+                }, 100);
             });
-        }, 200);
+            
+            animationStep++;
+            
+            // After some spins, show the final result
+            if (animationStep > 15) {
+                clearInterval(previewInterval);
+                showPreviewResult();
+            }
+        }, 150);
+    }
+
+    function showPreviewResult() {
+        const reels = document.querySelectorAll('.slot-preview .preview-reel-item');
+        const results = ['B', 'O', 'Y'];
+        
+        reels.forEach((reel, index) => {
+            setTimeout(() => {
+                reel.textContent = results[index];
+                reel.style.background = 'linear-gradient(45deg, #ffd700, #ffed4e)';
+                reel.style.color = '#1f2937';
+                reel.style.borderRadius = '8px';
+                reel.style.transform = 'scale(1.1)';
+                
+                setTimeout(() => {
+                    reel.style.transform = 'scale(1)';
+                }, 300);
+            }, index * 200);
+        });
+        
+        // Reset after a delay
+        setTimeout(() => {
+            stopPreviewAnimation();
+        }, 2000);
     }
 
     function stopPreviewAnimation() {
         clearInterval(previewInterval);
-        const reels = document.querySelectorAll('.slot-preview .slot-reel');
+        const reels = document.querySelectorAll('.slot-preview .preview-reel-item');
         reels.forEach(reel => {
             reel.textContent = '?';
+            reel.style.background = '';
+            reel.style.color = '';
+            reel.style.borderRadius = '';
+            reel.style.transform = '';
         });
     }
 

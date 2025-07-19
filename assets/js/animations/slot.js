@@ -38,18 +38,26 @@ function playSpinSound() {
 }
 
 function startSlotSequence() {
+    // Reset any previous state
+    resetSlotMachine();
+    
+    // Add anticipation effect
+    addAnticipationEffect();
+    
     // Animate the handle being pulled
-    animateHandle();
-    
-    // Start spinning reels with staggered timing
-    setTimeout(() => spinReel('reel1', 3000), 200);
-    setTimeout(() => spinReel('reel2', 4000), 600);
-    setTimeout(() => spinReel('reel3', 5000), 1000);
-    
-    // Show result after all reels stop
     setTimeout(() => {
-        showFinalResult();
-    }, 6000);
+        animateHandle();
+        
+        // Start spinning reels with staggered timing
+        setTimeout(() => spinReel('reel1', 3000), 300);
+        setTimeout(() => spinReel('reel2', 4000), 700);
+        setTimeout(() => spinReel('reel3', 5000), 1100);
+        
+        // Show result after all reels stop
+        setTimeout(() => {
+            showFinalResult();
+        }, 6500);
+    }, 1000);
 }
 
 function animateHandle() {
@@ -111,7 +119,7 @@ function setupReelItems(reelItems, reelId) {
     // Create items for spinning
     const boyItems = ['B', 'O', 'Y'];
     const girlItems = ['G', 'I', 'R', 'L'];
-    const randomItems = ['X', '?', '★', '♦', '♠', '♣', '♥'];
+    const randomItems = ['X', '?', '★', '♦', '♠', '♣', '♥', '#', '@', '%', '&', '!'];
     
     // Get the target letter for this reel
     let targetLetter;
@@ -124,8 +132,21 @@ function setupReelItems(reelItems, reelId) {
     // Create a long list of items for spinning effect
     const items = [];
     
-    // Add many random items
-    for (let i = 0; i < 50; i++) {
+    // Add many random items with some variety
+    for (let i = 0; i < 30; i++) {
+        const randomItem = randomItems[Math.floor(Math.random() * randomItems.length)];
+        items.push(randomItem);
+    }
+    
+    // Add some teaser letters (mix of boy/girl letters)
+    const allLetters = [...boyItems, ...girlItems];
+    for (let i = 0; i < 15; i++) {
+        const randomLetter = allLetters[Math.floor(Math.random() * allLetters.length)];
+        items.push(randomLetter);
+    }
+    
+    // Add more random items
+    for (let i = 0; i < 10; i++) {
         const randomItem = randomItems[Math.floor(Math.random() * randomItems.length)];
         items.push(randomItem);
     }
@@ -158,16 +179,20 @@ function stopReelAtTarget(reelItems, reelId) {
     const targetPosition = -(items.length - 1) * itemHeight;
     
     reelItems.style.transform = `translateY(${targetPosition}px)`;
-    reelItems.style.transition = 'transform 0.5s ease-out';
+    reelItems.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     
     // Add winning effect to the target item
     const targetItem = items[items.length - 1];
     if (targetItem) {
         setTimeout(() => {
             targetItem.style.background = 'linear-gradient(45deg, #ffd700, #ffed4e)';
-            targetItem.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
+            targetItem.style.boxShadow = `0 0 30px ${targetGender === 'boy' ? '#3b82f6' : '#ec4899'}`;
             targetItem.style.transform = 'scale(1.1)';
-            targetItem.style.transition = 'all 0.3s ease';
+            targetItem.style.transition = 'all 0.5s ease';
+            targetItem.style.borderRadius = '8px';
+            
+            // Add pulsing glow effect
+            targetItem.style.animation = 'winnerPulse 1s infinite';
         }, 500);
     }
 }
@@ -175,6 +200,9 @@ function stopReelAtTarget(reelItems, reelId) {
 function showFinalResult() {
     // Determine result text
     const resultText = targetGender === 'boy' ? 'IT\'S A BOY!' : 'IT\'S A GIRL!';
+    
+    // Add dramatic build-up effect
+    addDramaticBuildUp();
     
     // Play celebration sound (if available)
     const winSound = document.getElementById('winSound');
@@ -184,10 +212,17 @@ function showFinalResult() {
     
     // Add dramatic pause before showing result
     setTimeout(() => {
-        // Hide slot machine
+        // Add screen flash effect
+        flashScreen();
+        
+        // Add sparkles effect
+        addSparkles();
+        
+        // Hide slot machine with fade
         const slotMachine = document.getElementById('slotMachine');
         if (slotMachine) {
-            slotMachine.style.opacity = '0.3';
+            slotMachine.style.opacity = '0.2';
+            slotMachine.style.transition = 'opacity 1s ease';
         }
         
         // Show result using the global function from reveal.js
@@ -195,10 +230,23 @@ function showFinalResult() {
             showResult(resultText, true);
         }
         
-        // Add screen flash effect
-        flashScreen();
-        
-    }, 1000);
+    }, 2000);
+}
+
+function addDramaticBuildUp() {
+    // Add pulsing effect to all winning letters
+    const allReels = document.querySelectorAll('.slot-reel');
+    allReels.forEach((reel, index) => {
+        setTimeout(() => {
+            reel.style.transform = 'scale(1.1)';
+            reel.style.boxShadow = `0 0 30px ${targetGender === 'boy' ? '#3b82f6' : '#ec4899'}`;
+            reel.style.transition = 'all 0.5s ease';
+            
+            setTimeout(() => {
+                reel.style.transform = 'scale(1)';
+            }, 500);
+        }, index * 300);
+    });
 }
 
 function flashScreen() {
@@ -290,6 +338,19 @@ function addSparkles() {
     }, 5000);
 }
 
+// Add anticipation effect before starting
+function addAnticipationEffect() {
+    const slotMachine = document.getElementById('slotMachine');
+    if (slotMachine) {
+        slotMachine.style.transform = 'scale(1.02)';
+        slotMachine.style.transition = 'transform 0.8s ease-in-out';
+        
+        setTimeout(() => {
+            slotMachine.style.transform = 'scale(1)';
+        }, 800);
+    }
+}
+
 // Reset function for replay
 function resetSlotMachine() {
     slotMachineActive = false;
@@ -300,17 +361,44 @@ function resetSlotMachine() {
         if (reel) {
             const reelItems = reel.querySelector('.reel-items');
             if (reelItems) {
+                // Clear all styles and animations
+                reelItems.style.cssText = '';
                 reelItems.style.transform = 'translateY(0)';
                 reelItems.style.transition = 'none';
+                
+                // Reset to initial state with question marks
+                reelItems.innerHTML = `
+                    <div class="reel-item">?</div>
+                    <div class="reel-item">?</div>
+                    <div class="reel-item">?</div>
+                `;
             }
+            
+            // Reset reel styling
+            reel.style.cssText = '';
         }
     });
     
-    // Reset slot machine opacity
+    // Reset slot machine opacity and transform
     const slotMachine = document.getElementById('slotMachine');
     if (slotMachine) {
         slotMachine.style.opacity = '1';
+        slotMachine.style.transform = 'scale(1)';
+        slotMachine.style.transition = '';
     }
+    
+    // Hide result if visible
+    const result = document.getElementById('result');
+    if (result) {
+        result.classList.add('hidden');
+    }
+    
+    // Clear any lingering animations or effects
+    const flashElements = document.querySelectorAll('.flash-effect');
+    flashElements.forEach(el => el.remove());
+    
+    const sparkleElements = document.querySelectorAll('.sparkle-effect');
+    sparkleElements.forEach(el => el.remove());
 }
 
 // Export functions
