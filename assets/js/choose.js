@@ -296,13 +296,22 @@ function startReveal() {
     // Multiple navigation methods for better compatibility
     const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
     
-    // Method 1: URL parameters (primary)
-    const revealUrl = `${baseUrl}/reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
+    // Method 1: URL parameters (primary) - handle both local dev and production
+    let revealUrl;
+    if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
+        // Local development - use relative path
+        revealUrl = `./reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
+    } else {
+        // Production - use baseUrl
+        revealUrl = `${baseUrl}/reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
+    }
     
     // Method 2: Hash fragment (backup)
-    const revealUrlHash = `${baseUrl}/reveal.html#${encodeURIComponent(JSON.stringify({animation: selectedAnimation, gender: selectedGender}))}`;
+    const hashData = {animation: selectedAnimation, gender: selectedGender};
+    const revealUrlHash = revealUrl.split('?')[0] + '#' + encodeURIComponent(JSON.stringify(hashData));
     
     console.log('Using baseUrl:', baseUrl); // Debug log
+    console.log('Environment:', window.location.origin); // Debug log
     console.log('Primary navigation URL:', revealUrl); // Debug log
     console.log('Backup navigation URL:', revealUrlHash); // Debug log
     
@@ -313,6 +322,7 @@ function startReveal() {
     setTimeout(() => {
         // Try the primary method first
         try {
+            console.log('Navigating to:', revealUrl);
             window.location.href = revealUrl;
         } catch (e) {
             console.log('Primary navigation failed, trying backup method:', e);
@@ -340,6 +350,20 @@ function saveSelections() {
         // Also save to localStorage as additional backup
         localStorage.setItem('genderRevealSelections_backup', JSON.stringify(selections));
         console.log('Backup selections saved to localStorage'); // Debug log
+        
+        // Verify the data was saved correctly
+        const verification = sessionStorage.getItem('genderRevealSelections');
+        if (verification) {
+            const parsed = JSON.parse(verification);
+            console.log('Verification - data retrieved from sessionStorage:', parsed);
+            if (parsed.animation !== selectedAnimation || parsed.gender !== selectedGender) {
+                console.error('Data verification failed - saved data does not match selections');
+            } else {
+                console.log('Data verification successful');
+            }
+        } else {
+            console.error('Data verification failed - no data found in sessionStorage after save');
+        }
     } catch (e) {
         console.error('Error saving selections:', e);
     }

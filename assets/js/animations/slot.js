@@ -5,8 +5,19 @@ let targetGender = 'boy';
 let spinSounds = [];
 
 function initSlotMachine(gender) {
+    console.log('initSlotMachine called with gender:', gender); // Debug log
+    
+    // Validate gender parameter
+    if (!gender || (gender !== 'boy' && gender !== 'girl')) {
+        console.error('Invalid gender provided to initSlotMachine:', gender);
+        console.log('Defaulting to boy');
+        gender = 'boy';
+    }
+    
     targetGender = gender;
     slotMachineActive = true;
+    
+    console.log('Slot machine initialized with target gender:', targetGender); // Debug log
     
     // Initialize sounds
     initSounds();
@@ -201,6 +212,9 @@ function showFinalResult() {
     // Determine result text
     const resultText = targetGender === 'boy' ? 'IT\'S A BOY!' : 'IT\'S A GIRL!';
     
+    console.log('Showing final result for:', targetGender); // Debug log
+    console.log('Result text:', resultText); // Debug log
+    
     // Add dramatic build-up effect
     addDramaticBuildUp();
     
@@ -227,10 +241,35 @@ function showFinalResult() {
         
         // Show result using the global function from reveal.js
         if (typeof showResult === 'function') {
+            console.log('Calling showResult function'); // Debug log
             showResult(resultText, true);
+        } else {
+            console.error('showResult function not found - animation may have lost connection to reveal page');
+            // Fallback: show result directly
+            showFallbackResult(resultText);
         }
         
     }, 2000);
+}
+
+function showFallbackResult(resultText) {
+    console.log('Using fallback result display'); // Debug log
+    const result = document.getElementById('result');
+    const resultTextElement = document.getElementById('resultText');
+    
+    if (result && resultTextElement) {
+        resultTextElement.textContent = resultText;
+        resultTextElement.style.background = targetGender === 'boy' ? 
+            'linear-gradient(45deg, #3b82f6, #1d4ed8)' : 
+            'linear-gradient(45deg, #ec4899, #be185d)';
+        resultTextElement.style.webkitBackgroundClip = 'text';
+        resultTextElement.style.webkitTextFillColor = 'transparent';
+        
+        result.classList.remove('hidden');
+        console.log('Fallback result displayed'); // Debug log
+    } else {
+        console.error('Result elements not found even in fallback'); // Debug log
+    }
 }
 
 function addDramaticBuildUp() {

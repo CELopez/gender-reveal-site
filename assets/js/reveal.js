@@ -22,6 +22,13 @@ function initRevealPage() {
         return;
     }
     
+    // Clear the URL hash to prevent re-parsing issues
+    if (window.location.hash) {
+        // Remove hash without triggering page reload
+        const url = window.location.href.split('#')[0];
+        window.history.replaceState(null, null, url);
+    }
+    
     // Setup pre-reveal screen
     setupPreRevealScreen();
     
@@ -76,22 +83,6 @@ function getRevealData() {
         return data;
     }
     
-    // Fallback to sessionStorage
-    try {
-        const stored = sessionStorage.getItem('genderRevealSelections');
-        console.log('SessionStorage data:', stored); // Debug log
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            console.log('Parsed sessionStorage:', parsed); // Debug log
-            // Validate the data structure
-            if (parsed && parsed.animation && parsed.gender) {
-                return parsed;
-            }
-        }
-    } catch (e) {
-        console.error('Error reading stored selections:', e);
-    }
-    
     // Check if we're coming from the choose page with hash fragments (alternative method)
     const hash = window.location.hash;
     if (hash) {
@@ -99,11 +90,35 @@ function getRevealData() {
             const hashData = JSON.parse(decodeURIComponent(hash.substring(1)));
             if (hashData && hashData.animation && hashData.gender) {
                 console.log('Found valid hash data:', hashData);
+                // Save to sessionStorage for future use
+                sessionStorage.setItem('genderRevealSelections', JSON.stringify(hashData));
                 return hashData;
             }
         } catch (e) {
-            // Hash is not JSON, ignore
+            console.log('Hash parsing failed:', e);
         }
+    }
+    
+    // Fallback to sessionStorage
+    try {
+        const stored = sessionStorage.getItem('genderRevealSelections');
+        console.log('SessionStorage data:', stored); // Debug log
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            console.log('Parsed sessionStorage:', parsed); // Debug log
+            // Validate the data structure - check for the more robust format from choose.js
+            if (parsed && parsed.animation && parsed.gender) {
+                // Handle both old and new data formats
+                const data = {
+                    animation: parsed.animation,
+                    gender: parsed.gender
+                };
+                console.log('Valid sessionStorage data found:', data);
+                return data;
+            }
+        }
+    } catch (e) {
+        console.error('Error reading stored selections:', e);
     }
     
     // Final fallback to localStorage backup
@@ -115,7 +130,13 @@ function getRevealData() {
             console.log('Parsed localStorage backup:', parsed); // Debug log
             if (parsed && parsed.animation && parsed.gender) {
                 console.log('Using localStorage backup data');
-                return parsed;
+                // Save to sessionStorage for current session
+                const data = {
+                    animation: parsed.animation,
+                    gender: parsed.gender
+                };
+                sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
+                return data;
             }
         }
     } catch (e) {
@@ -165,6 +186,26 @@ function startCountdownAndReveal() {
     const countdown = document.getElementById('countdown');
     const countdownNumber = document.getElementById('countdownNumber');
     const startBtn = document.getElementById('startRevealBtn');
+    
+    // Double-check reveal data before starting countdown
+    if (!revealData || !revealData.animation || !revealData.gender) {
+        console.error('Reveal data missing during countdown start - attempting recovery');
+        revealData = getRevealData();
+        if (!revealData) {
+            console.error('Cannot recover reveal data - redirecting to choose');
+            redirectToChoose();
+            return;
+        }
+    }
+    
+    // Persist data one more time before animation
+    try {
+        sessionStorage.setItem('genderRevealSelections', JSON.stringify(revealData));
+        localStorage.setItem('genderRevealSelections_backup', JSON.stringify(revealData));
+        console.log('Reveal data persisted before countdown:', revealData);
+    } catch (e) {
+        console.error('Failed to persist reveal data:', e);
+    }
     
     // Hide start button and show countdown
     if (startBtn) startBtn.style.display = 'none';
@@ -273,6 +314,16 @@ function startSlotMachineAnimation() {
     
     if (slotMachine) {
         slotMachine.classList.remove('hidden');
+        
+        // Ensure reveal data is still available
+        if (!revealData || !revealData.gender) {
+            console.error('Reveal data lost during animation start - attempting to recover');
+            revealData = getRevealData();
+            if (!revealData) {
+                console.error('Could not recover reveal data - using fallback');
+                revealData = { animation: 'slot', gender: 'boy' }; // Default fallback
+            }
+        }
         
         // Initialize slot machine animation
         if (typeof initSlotMachine === 'function') {
@@ -414,11 +465,20 @@ function redirectToChoose() {
     // Clear any stored selections that might be invalid
     sessionStorage.removeItem('genderRevealSelections');
     
-    // Use the Jekyll baseurl configuration
+    // Use the Jekyll baseurl configuration, but handle local development
     const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
-    const chooseUrl = `${baseUrl}/choose.html`;
+    let chooseUrl;
+    
+    if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
+        // Local development - use relative path
+        chooseUrl = './choose.html';
+    } else {
+        // Production - use baseUrl
+        chooseUrl = `${baseUrl}/choose.html`;
+    }
     
     console.log('Using baseUrl for redirect:', baseUrl); // Debug log
+    console.log('Environment:', window.location.origin); // Debug log
     console.log('Redirecting to choose page:', chooseUrl); // Debug log
     window.location.href = chooseUrl;
 }
