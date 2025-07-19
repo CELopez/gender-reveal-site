@@ -404,35 +404,107 @@ function saveSelections() {
         gender: selectedGender,
         timestamp: new Date().toISOString(),
         source: 'choose_page',
-        version: '1.1' // Version for compatibility tracking
+        version: '1.2' // Updated version for enhanced compatibility
     };
     
     console.log('Saving selections:', selections); // Debug log
     
-    try {
-        sessionStorage.setItem('genderRevealSelections', JSON.stringify(selections));
-        console.log('Selections saved to sessionStorage successfully'); // Debug log
-        
-        // Also save to localStorage as additional backup
-        localStorage.setItem('genderRevealSelections_backup', JSON.stringify(selections));
-        console.log('Backup selections saved to localStorage'); // Debug log
-        
-        // Verify the data was saved correctly
-        const verification = sessionStorage.getItem('genderRevealSelections');
-        if (verification) {
-            const parsed = JSON.parse(verification);
-            console.log('Verification - data retrieved from sessionStorage:', parsed);
-            if (parsed.animation !== selectedAnimation || parsed.gender !== selectedGender) {
-                console.error('Data verification failed - saved data does not match selections');
-            } else {
-                console.log('Data verification successful');
-            }
-        } else {
-            console.error('Data verification failed - no data found in sessionStorage after save');
+    // Enhanced multi-strategy persistence
+    return saveSelectionsRobustly(selections);
+}
+
+function saveSelectionsRobustly(selections) {
+    // Multiple storage strategies for maximum reliability
+    const storageStrategies = [
+        {
+            name: 'Primary sessionStorage',
+            fn: () => sessionStorage.setItem('genderRevealSelections', JSON.stringify(selections))
+        },
+        {
+            name: 'Primary localStorage backup',
+            fn: () => localStorage.setItem('genderRevealSelections_backup', JSON.stringify(selections))
+        },
+        {
+            name: 'Alternative sessionStorage',
+            fn: () => sessionStorage.setItem('gender_reveal_data', JSON.stringify(selections))
+        },
+        {
+            name: 'Alternative localStorage',
+            fn: () => localStorage.setItem('reveal_data', JSON.stringify(selections))
+        },
+        {
+            name: 'Fallback sessionStorage',
+            fn: () => sessionStorage.setItem('reveal_selections', JSON.stringify(selections))
         }
-    } catch (e) {
-        console.error('Error saving selections:', e);
+    ];
+    
+    let successCount = 0;
+    const results = [];
+    
+    storageStrategies.forEach((strategy, index) => {
+        try {
+            strategy.fn();
+            successCount++;
+            console.log(`${strategy.name} - SUCCESS`);
+            results.push({ strategy: strategy.name, success: true });
+        } catch (e) {
+            console.log(`${strategy.name} - FAILED:`, e.message);
+            results.push({ strategy: strategy.name, success: false, error: e.message });
+        }
+    });
+    
+    console.log(`Data saved to ${successCount}/${storageStrategies.length} storage locations`);
+    
+    // Verify at least one storage method worked
+    if (successCount === 0) {
+        console.error('CRITICAL: All storage methods failed!');
+        throw new Error('All storage methods failed');
     }
+    
+    // Additional verification
+    setTimeout(() => {
+        verifyDataPersistence(selections);
+    }, 100);
+    
+    return selections;
+}
+
+function verifyDataPersistence(originalSelections) {
+    const verificationKeys = [
+        'genderRevealSelections',
+        'genderRevealSelections_backup',
+        'gender_reveal_data',
+        'reveal_data',
+        'reveal_selections'
+    ];
+    
+    let verificationCount = 0;
+    
+    for (const key of verificationKeys) {
+        try {
+            // Check both storage types
+            for (const storage of [sessionStorage, localStorage]) {
+                const data = storage.getItem(key);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    if (parsed && parsed.animation === originalSelections.animation && parsed.gender === originalSelections.gender) {
+                        verificationCount++;
+                        console.log(`Verification successful for ${key} in ${storage === sessionStorage ? 'sessionStorage' : 'localStorage'}`);
+                    }
+                }
+            }
+        } catch (e) {
+            console.log(`Verification failed for ${key}:`, e);
+        }
+    }
+    
+    console.log(`Data verification: ${verificationCount} successful verifications`);
+    
+    if (verificationCount === 0) {
+        console.error('CRITICAL: Data verification failed - no data could be retrieved after save');
+    }
+    
+    return verificationCount > 0;
 }
 
 // Global functions
