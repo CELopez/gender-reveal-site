@@ -1,6 +1,8 @@
 // Reveal Page JavaScript - Handles pre-reveal screen and animation trigger
 
 let revealData = null;
+let dataRecoveryAttempts = 0;
+const MAX_RECOVERY_ATTEMPTS = 3;
 
 document.addEventListener('DOMContentLoaded', function() {
     initRevealPage();
@@ -15,27 +17,476 @@ function initRevealPage() {
     if (!revealData || !revealData.animation || !revealData.gender) {
         console.log('No valid reveal data found on first attempt, trying recovery...'); // Debug log
         
-        // Try recovery with a delay to handle race conditions
-        setTimeout(() => {
-            console.log('Attempting data recovery after delay...');
-            revealData = getRevealData();
-            
-            if (!revealData || !revealData.animation || !revealData.gender) {
-                console.log('Recovery failed, showing redirect message...');
-                showRedirectMessage();
-                setTimeout(() => {
-                    redirectToChoose();
-                }, 3000);
-                return;
-            } else {
-                console.log('Recovery successful, continuing with reveal setup');
+        // Enhanced recovery with multiple strategies
+        attemptEnhancedDataRecovery().then((recoveredData) => {
+            if (recoveredData && recoveredData.animation && recoveredData.gender) {
+                console.log('Enhanced recovery successful, continuing with reveal setup');
+                revealData = recoveredData;
                 proceedWithRevealSetup();
+            } else {
+                console.log('All recovery attempts failed');
+                handleDataRecoveryFailure();
             }
-        }, 500); // Give more time for data to be available
+        });
         return;
     }
     
     proceedWithRevealSetup();
+}
+
+function attemptEnhancedDataRecovery() {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const recoveryStrategies = [
+            () => getRevealDataFromURL(),
+            () => getRevealDataFromStorage(),
+            () => getRevealDataFromBackup(),
+            () => getRevealDataFromURLHash(),
+            () => getRevealDataFromReferrer(),
+            () => getRevealDataFromSession()
+        ];
+        
+        function tryNextStrategy() {
+            if (attempts >= recoveryStrategies.length) {
+                console.log('All recovery strategies exhausted');
+                resolve(null);
+                return;
+            }
+            
+            console.log(`Trying recovery strategy ${attempts + 1}/${recoveryStrategies.length}`);
+            
+            try {
+                const data = recoveryStrategies[attempts]();
+                if (data && data.animation && data.gender) {
+                    console.log(`Recovery strategy ${attempts + 1} successful:`, data);
+                    resolve(data);
+                    return;
+                }
+            } catch (e) {
+                console.log(`Recovery strategy ${attempts + 1} failed:`, e);
+            }
+            
+            attempts++;
+            // Use exponential backoff for retries
+            setTimeout(tryNextStrategy, Math.min(1000 * Math.pow(2, attempts), 5000));
+        }
+        
+        tryNextStrategy();
+    });
+}
+
+function getRevealDataFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const animation = urlParams.get('animation');
+    const gender = urlParams.get('gender');
+    
+    if (animation && gender && isValidAnimationGender(animation, gender)) {
+        return { animation, gender };
+    }
+    return null;
+}
+
+function getRevealDataFromStorage() {
+    try {
+        const stored = sessionStorage.getItem('genderRevealSelections');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.animation && parsed.gender && isValidAnimationGender(parsed.animation, parsed.gender)) {
+                return { animation: parsed.animation, gender: parsed.gender };
+            }
+        }
+    } catch (e) {
+        console.error('Error reading sessionStorage:', e);
+    }
+    return null;
+}
+
+function getRevealDataFromBackup() {
+    try {
+        const backup = localStorage.getItem('genderRevealSelections_backup');
+        if (backup) {
+            const parsed = JSON.parse(backup);
+            if (parsed && parsed.animation && parsed.gender && isValidAnimationGender(parsed.animation, parsed.gender)) {
+                return { animation: parsed.animation, gender: parsed.gender };
+            }
+        }
+    } catch (e) {
+        console.error('Error reading localStorage backup:', e);
+    }
+    return null;
+}
+
+function getRevealDataFromURLHash() {
+    try {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#')) {
+            const hashData = JSON.parse(decodeURIComponent(hash.substring(1)));
+            if (hashData && hashData.animation && hashData.gender && isValidAnimationGender(hashData.animation, hashData.gender)) {
+                return { animation: hashData.animation, gender: hashData.gender };
+            }
+        }
+    } catch (e) {
+        console.log('Hash parsing failed:', e);
+    }
+    return null;
+}
+
+function getRevealDataFromReferrer() {
+    // Check if coming from choose page - could extract from referrer
+    try {
+        const referrer = document.referrer;
+        if (referrer && referrer.includes('choose.html')) {
+            // Try to find any stored data that's recent (within last 5 minutes)
+            const recentData = getRecentStoredData();
+            if (recentData) {
+                return recentData;
+            }
+        }
+    } catch (e) {
+        console.log('Referrer check failed:', e);
+    }
+    return null;
+}
+
+function getRevealDataFromSession() {
+    // Try alternative storage keys that might exist
+    const alternativeKeys = [
+        'reveal_data',
+        'gender_reveal_data',
+        'genderReveal',
+        'reveal_selections'
+    ];
+    
+    for (const key of alternativeKeys) {
+        try {
+            const data = sessionStorage.getItem(key) || localStorage.getItem(key);
+            if (data) {
+                const parsed = JSON.parse(data);
+                if (parsed && parsed.animation && parsed.gender) {
+                    return { animation: parsed.animation, gender: parsed.gender };
+                }
+            }
+        } catch (e) {
+            // Continue to next key
+        }
+    }
+    return null;
+}
+
+function getRecentStoredData() {
+    try {
+        const keys = ['genderRevealSelections', 'genderRevealSelections_backup'];
+        for (const storageType of [sessionStorage, localStorage]) {
+            for (const key of keys) {
+                const data = storageType.getItem(key);
+                if (data) {
+                    const parsed = JSON.parse(data);
+                    if (parsed && parsed.animation && parsed.gender) {
+                        // Check if data is recent (within 5 minutes)
+                        if (parsed.timestamp) {
+                            const dataTime = new Date(parsed.timestamp);
+                            const now = new Date();
+                            const diffMinutes = (now - dataTime) / (1000 * 60);
+                            if (diffMinutes <= 5) {
+                                return { animation: parsed.animation, gender: parsed.gender };
+                            }
+                        } else {
+                            // If no timestamp, assume it's recent enough
+                            return { animation: parsed.animation, gender: parsed.gender };
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Error getting recent stored data:', e);
+    }
+    return null;
+}
+
+function isValidAnimationGender(animation, gender) {
+    const validAnimations = ['slot', 'wheel', 'fireworks'];
+    const validGenders = ['boy', 'girl'];
+    return validAnimations.includes(animation) && validGenders.includes(gender);
+}
+
+function handleDataRecoveryFailure() {
+    // Instead of immediately redirecting, provide user with options
+    showDataRecoveryOptions();
+}
+
+function showDataRecoveryOptions() {
+    const preReveal = document.getElementById('preReveal');
+    if (preReveal) {
+        preReveal.innerHTML = `
+            <div class="text-center max-w-2xl mx-auto px-4">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-8">
+                    Oops! Let's Get You Back on Track
+                </h1>
+                
+                <div class="bg-white rounded-3xl shadow-2xl p-8 mb-8">
+                    <div class="text-6xl mb-6">🔄</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">We lost your reveal settings</h2>
+                    <p class="text-gray-600 mb-8">Don't worry! This sometimes happens on mobile devices. Let's get your reveal ready again.</p>
+                    
+                    <div class="space-y-4">
+                        <button onclick="retryDataRecovery()" 
+                                class="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                            🔍 Try to Recover Settings
+                        </button>
+                        
+                        <button onclick="quickSetup()" 
+                                class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                            ⚡ Quick Setup (30 seconds)
+                        </button>
+                        
+                        <button onclick="goBackToChoose()" 
+                                class="w-full bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full hover:bg-gray-400 transition-all duration-300">
+                            ← Go Back to Setup
+                        </button>
+                    </div>
+                </div>
+                
+                <p class="text-gray-500 text-sm">
+                    💡 Tip: For best results, try using the same browser and avoid private/incognito mode
+                </p>
+            </div>
+        `;
+    }
+}
+
+function retryDataRecovery() {
+    showLoadingMessage('Searching for your settings...');
+    
+    // Try one more comprehensive recovery
+    setTimeout(async () => {
+        const data = await attemptEnhancedDataRecovery();
+        if (data && data.animation && data.gender) {
+            hideLoadingMessage();
+            revealData = data;
+            proceedWithRevealSetup();
+        } else {
+            hideLoadingMessage();
+            showNoDataFoundMessage();
+        }
+    }, 2000);
+}
+
+function quickSetup() {
+    showQuickSetupModal();
+}
+
+function showQuickSetupModal() {
+    const modal = document.createElement('div');
+    modal.id = 'quickSetupModal';
+    modal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Quick Setup</h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-700 mb-3">Choose Animation:</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="quick-animation-btn bg-gradient-to-br from-yellow-400 to-red-500 text-white p-4 rounded-xl font-bold hover:scale-105 transition-all" data-animation="slot">
+                                🎰 Slot Machine
+                            </button>
+                            <button class="quick-animation-btn bg-gradient-to-br from-purple-400 to-pink-500 text-white p-4 rounded-xl font-bold hover:scale-105 transition-all" data-animation="wheel">
+                                🎡 Wheel
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-700 mb-3">Select Gender:</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="quick-gender-btn bg-gradient-to-br from-blue-400 to-blue-600 text-white p-4 rounded-xl font-bold hover:scale-105 transition-all" data-gender="boy">
+                                👶 Boy
+                            </button>
+                            <button class="quick-gender-btn bg-gradient-to-br from-pink-400 to-pink-600 text-white p-4 rounded-xl font-bold hover:scale-105 transition-all" data-gender="girl">
+                                👶 Girl
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button onclick="startQuickReveal()" 
+                                class="flex-1 bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" 
+                                id="quickStartBtn" disabled>
+                            Start Reveal! 🎉
+                        </button>
+                        <button onclick="closeQuickSetup()" 
+                                class="bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-full hover:bg-gray-400 transition-all duration-300">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add event listeners for quick setup
+    setupQuickSetupListeners();
+}
+
+function setupQuickSetupListeners() {
+    let selectedAnimation = null;
+    let selectedGender = null;
+    
+    const animationBtns = document.querySelectorAll('.quick-animation-btn');
+    const genderBtns = document.querySelectorAll('.quick-gender-btn');
+    const startBtn = document.getElementById('quickStartBtn');
+    
+    animationBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            animationBtns.forEach(b => b.classList.remove('ring-4', 'ring-white'));
+            this.classList.add('ring-4', 'ring-white');
+            selectedAnimation = this.getAttribute('data-animation');
+            updateQuickStartBtn();
+        });
+    });
+    
+    genderBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            genderBtns.forEach(b => b.classList.remove('ring-4', 'ring-white'));
+            this.classList.add('ring-4', 'ring-white');
+            selectedGender = this.getAttribute('data-gender');
+            updateQuickStartBtn();
+        });
+    });
+    
+    function updateQuickStartBtn() {
+        if (selectedAnimation && selectedGender) {
+            startBtn.disabled = false;
+            startBtn.onclick = () => startQuickReveal(selectedAnimation, selectedGender);
+        } else {
+            startBtn.disabled = true;
+        }
+    }
+    
+    // Make functions globally available
+    window.startQuickReveal = (animation, gender) => startQuickReveal(animation || selectedAnimation, gender || selectedGender);
+    window.closeQuickSetup = closeQuickSetup;
+}
+
+function startQuickReveal(animation, gender) {
+    if (!animation || !gender) {
+        alert('Please select both animation and gender');
+        return;
+    }
+    
+    revealData = { animation, gender };
+    
+    // Save the data for future use
+    saveRevealDataRobustly(revealData);
+    
+    closeQuickSetup();
+    proceedWithRevealSetup();
+}
+
+function closeQuickSetup() {
+    const modal = document.getElementById('quickSetupModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function saveRevealDataRobustly(data) {
+    const dataToSave = {
+        ...data,
+        timestamp: new Date().toISOString(),
+        source: 'quick_setup',
+        version: '1.2'
+    };
+    
+    // Try multiple storage methods
+    const storageStrategies = [
+        () => sessionStorage.setItem('genderRevealSelections', JSON.stringify(dataToSave)),
+        () => localStorage.setItem('genderRevealSelections_backup', JSON.stringify(dataToSave)),
+        () => localStorage.setItem('reveal_data', JSON.stringify(dataToSave)),
+        () => sessionStorage.setItem('gender_reveal_data', JSON.stringify(dataToSave))
+    ];
+    
+    let savedCount = 0;
+    storageStrategies.forEach((strategy, index) => {
+        try {
+            strategy();
+            savedCount++;
+            console.log(`Storage strategy ${index + 1} successful`);
+        } catch (e) {
+            console.log(`Storage strategy ${index + 1} failed:`, e);
+        }
+    });
+    
+    console.log(`Data saved to ${savedCount}/${storageStrategies.length} storage locations`);
+}
+
+function showLoadingMessage(message) {
+    const preReveal = document.getElementById('preReveal');
+    if (preReveal) {
+        preReveal.innerHTML = `
+            <div class="text-center max-w-2xl mx-auto px-4">
+                <div class="bg-white rounded-3xl shadow-2xl p-12">
+                    <div class="text-6xl mb-6">🔍</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">${message}</h3>
+                    <div class="flex justify-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function hideLoadingMessage() {
+    // Will be replaced by next action
+}
+
+function showNoDataFoundMessage() {
+    const preReveal = document.getElementById('preReveal');
+    if (preReveal) {
+        preReveal.innerHTML = `
+            <div class="text-center max-w-2xl mx-auto px-4">
+                <div class="bg-white rounded-3xl shadow-2xl p-8">
+                    <div class="text-6xl mb-6">😔</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">No Settings Found</h3>
+                    <p class="text-gray-600 mb-6">We couldn't find your reveal settings. Let's set them up again!</p>
+                    <button onclick="quickSetup()" 
+                            class="bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                        ⚡ Quick Setup
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function goBackToChoose() {
+    // Clear any invalid data before going back
+    clearAllStoredData();
+    redirectToChoose();
+}
+
+function clearAllStoredData() {
+    const keysToRemove = [
+        'genderRevealSelections',
+        'genderRevealSelections_backup',
+        'reveal_data',
+        'gender_reveal_data',
+        'genderReveal',
+        'reveal_selections'
+    ];
+    
+    keysToRemove.forEach(key => {
+        try {
+            sessionStorage.removeItem(key);
+            localStorage.removeItem(key);
+        } catch (e) {
+            // Ignore errors
+        }
+    });
 }
 
 function proceedWithRevealSetup() {
@@ -87,107 +538,12 @@ function getRevealData() {
     console.log('Getting reveal data...'); // Debug log
     console.log('Current URL:', window.location.href); // Debug log
     
-    // First try URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const animation = urlParams.get('animation');
-    const gender = urlParams.get('gender');
-    
-    console.log('URL params - animation:', animation, 'gender:', gender); // Debug log
-    
-    if (animation && gender) {
-        console.log('Found valid URL parameters'); // Debug log
-        // Save to sessionStorage for future use
-        const data = { animation, gender };
-        try {
-            sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
-        } catch (e) {
-            console.error('Failed to save URL params to sessionStorage:', e);
-        }
-        return data;
-    }
-    
-    // Check if we're coming from the choose page with hash fragments (alternative method)
-    const hash = window.location.hash;
-    if (hash) {
-        try {
-            const hashData = JSON.parse(decodeURIComponent(hash.substring(1)));
-            if (hashData && hashData.animation && hashData.gender) {
-                console.log('Found valid hash data:', hashData);
-                // Save to sessionStorage for future use
-                const data = { animation: hashData.animation, gender: hashData.gender };
-                try {
-                    sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
-                } catch (e) {
-                    console.error('Failed to save hash data to sessionStorage:', e);
-                }
-                return data;
-            }
-        } catch (e) {
-            console.log('Hash parsing failed:', e);
-        }
-    }
-    
-    // Fallback to sessionStorage with better format handling
-    try {
-        const stored = sessionStorage.getItem('genderRevealSelections');
-        console.log('SessionStorage data:', stored); // Debug log
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            console.log('Parsed sessionStorage:', parsed); // Debug log
-            
-            // Handle both old and new data formats more robustly
-            if (parsed && parsed.animation && parsed.gender) {
-                // Normalize the data to simple format
-                const data = {
-                    animation: parsed.animation,
-                    gender: parsed.gender
-                };
-                console.log('Valid sessionStorage data found:', data);
-                return data;
-            } else if (parsed && typeof parsed === 'object') {
-                // Try to extract from nested structure
-                console.log('Attempting to extract from nested data structure...');
-                const extractedData = extractDataFromObject(parsed);
-                if (extractedData && extractedData.animation && extractedData.gender) {
-                    console.log('Successfully extracted data:', extractedData);
-                    // Save normalized data back
-                    sessionStorage.setItem('genderRevealSelections', JSON.stringify(extractedData));
-                    return extractedData;
-                }
-            }
-        }
-    } catch (e) {
-        console.error('Error reading stored selections:', e);
-    }
-    
-    // Final fallback to localStorage backup with similar handling
-    try {
-        const backup = localStorage.getItem('genderRevealSelections_backup');
-        console.log('Checking localStorage backup:', backup); // Debug log
-        if (backup) {
-            const parsed = JSON.parse(backup);
-            console.log('Parsed localStorage backup:', parsed); // Debug log
-            if (parsed && parsed.animation && parsed.gender) {
-                console.log('Using localStorage backup data');
-                // Save to sessionStorage for current session
-                const data = {
-                    animation: parsed.animation,
-                    gender: parsed.gender
-                };
-                try {
-                    sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
-                } catch (e) {
-                    console.error('Failed to save backup data to sessionStorage:', e);
-                }
-                return data;
-            }
-        }
-    } catch (e) {
-        console.error('Error reading localStorage backup:', e);
-    }
-    
-    console.log('No valid reveal data found - will redirect to choose page'); // Keep this for troubleshooting
-    return null;
+    // Use the enhanced recovery system
+    return getRevealDataFromURL() || 
+           getRevealDataFromStorage() || 
+           getRevealDataFromBackup() || 
+           getRevealDataFromURLHash() || 
+           null;
 }
 
 function extractDataFromObject(obj) {
@@ -706,3 +1062,6 @@ document.addEventListener('fullscreenchange', function() {
 window.showResult = showResult;
 window.exitFullscreen = exitFullscreen;
 window.getRevealData = () => revealData;
+window.retryDataRecovery = retryDataRecovery;
+window.quickSetup = quickSetup;
+window.goBackToChoose = goBackToChoose;

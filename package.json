@@ -1,0 +1,37 @@
+{
+  "name": "gender-reveal-site",
+  "version": "1.0.0",
+  "description": "Gender reveal website with animation selection and reveal flow",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:mobile": "jest --testNamePattern='Mobile'"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "collectCoverageFrom": [
+      "assets/js/**/*.js",
+      "!assets/js/**/*.min.js"
+    ],
+    "coverageReporters": ["text", "lcov", "html"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^22.1.0"
+  },
+  "keywords": [
+    "gender-reveal",
+    "animation",
+    "javascript",
+    "mobile"
+  ],
+  "author": "",
+  "license": "MIT"
+}
