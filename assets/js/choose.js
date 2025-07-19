@@ -293,17 +293,75 @@ function startReveal() {
         });
     }
     
-    // Multiple navigation methods for better compatibility
-    const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
+    // Wait for data persistence verification before navigation
+    setTimeout(() => {
+        verifyDataAndNavigate();
+    }, 100);
+}
+
+function verifyDataAndNavigate() {
+    // Verify data was saved correctly before navigation
+    try {
+        const verification = sessionStorage.getItem('genderRevealSelections');
+        if (!verification) {
+            console.error('Data not found in sessionStorage after save attempt');
+            // Try saving again
+            saveSelections();
+            setTimeout(verifyDataAndNavigate, 200);
+            return;
+        }
+        
+        const parsed = JSON.parse(verification);
+        if (!parsed.animation || !parsed.gender || 
+            parsed.animation !== selectedAnimation || 
+            parsed.gender !== selectedGender) {
+            console.error('Data verification failed, retrying save...');
+            saveSelections();
+            setTimeout(verifyDataAndNavigate, 200);
+            return;
+        }
+        
+        console.log('Data verification successful, proceeding with navigation');
+        proceedWithNavigation();
+    } catch (e) {
+        console.error('Error during data verification:', e);
+        // Try one more time
+        saveSelections();
+        setTimeout(proceedWithNavigation, 300);
+    }
+}
+
+function proceedWithNavigation() {
+    // Wait for SITE_CONFIG to be available if needed
+    const maxWaitTime = 1000; // Maximum wait time in ms
+    const startTime = Date.now();
     
+    function waitForConfigAndNavigate() {
+        const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
+        const isLocalhost = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
+        
+        // If we're on localhost or have waited long enough, proceed
+        if (isLocalhost || window.SITE_CONFIG || (Date.now() - startTime) > maxWaitTime) {
+            doNavigation(baseUrl);
+        } else {
+            // Wait a bit more for SITE_CONFIG to load
+            setTimeout(waitForConfigAndNavigate, 50);
+        }
+    }
+    
+    waitForConfigAndNavigate();
+}
+
+function doNavigation(baseUrl) {
     // Method 1: URL parameters (primary) - handle both local dev and production
     let revealUrl;
     if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
         // Local development - use relative path
         revealUrl = `./reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
     } else {
-        // Production - use baseUrl
-        revealUrl = `${baseUrl}/reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
+        // Production - use baseUrl (fallback to relative path if baseUrl is empty)
+        const basePath = baseUrl || '.';
+        revealUrl = `${basePath}/reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
     }
     
     // Method 2: Hash fragment (backup)
@@ -315,9 +373,9 @@ function startReveal() {
     console.log('Primary navigation URL:', revealUrl); // Debug log
     console.log('Backup navigation URL:', revealUrlHash); // Debug log
     
-    // Add fade transition
+    // Add fade transition with longer delay
     document.body.style.opacity = '0';
-    document.body.style.transition = 'opacity 0.3s ease';
+    document.body.style.transition = 'opacity 0.5s ease';
     
     setTimeout(() => {
         // Try the primary method first
@@ -327,9 +385,15 @@ function startReveal() {
         } catch (e) {
             console.log('Primary navigation failed, trying backup method:', e);
             // Fallback to hash method
-            window.location.href = revealUrlHash;
+            try {
+                window.location.href = revealUrlHash;
+            } catch (e2) {
+                console.error('Both navigation methods failed:', e2);
+                // Last resort - try simple relative navigation
+                window.location.href = `./reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
+            }
         }
-    }, 300);
+    }, 500); // Increased delay for better reliability
 }
 
 function saveSelections() {

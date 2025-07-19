@@ -13,21 +13,40 @@ function initRevealPage() {
     console.log('Reveal data:', revealData); // Debug log
     
     if (!revealData || !revealData.animation || !revealData.gender) {
-        console.log('No valid reveal data found, redirecting...'); // Debug log
-        // Add a longer delay and show a message before redirecting
-        showRedirectMessage();
+        console.log('No valid reveal data found on first attempt, trying recovery...'); // Debug log
+        
+        // Try recovery with a delay to handle race conditions
         setTimeout(() => {
-            redirectToChoose();
-        }, 3000);
+            console.log('Attempting data recovery after delay...');
+            revealData = getRevealData();
+            
+            if (!revealData || !revealData.animation || !revealData.gender) {
+                console.log('Recovery failed, showing redirect message...');
+                showRedirectMessage();
+                setTimeout(() => {
+                    redirectToChoose();
+                }, 3000);
+                return;
+            } else {
+                console.log('Recovery successful, continuing with reveal setup');
+                proceedWithRevealSetup();
+            }
+        }, 500); // Give more time for data to be available
         return;
     }
     
-    // Clear the URL hash to prevent re-parsing issues
-    if (window.location.hash) {
-        // Remove hash without triggering page reload
-        const url = window.location.href.split('#')[0];
-        window.history.replaceState(null, null, url);
-    }
+    proceedWithRevealSetup();
+}
+
+function proceedWithRevealSetup() {
+    // Don't clear the URL hash immediately - wait for data to be processed
+    setTimeout(() => {
+        if (window.location.hash) {
+            // Remove hash without triggering page reload
+            const url = window.location.href.split('#')[0];
+            window.history.replaceState(null, null, url);
+        }
+    }, 1000);
     
     // Setup pre-reveal screen
     setupPreRevealScreen();
@@ -79,7 +98,11 @@ function getRevealData() {
         console.log('Found valid URL parameters'); // Debug log
         // Save to sessionStorage for future use
         const data = { animation, gender };
-        sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
+        try {
+            sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
+        } catch (e) {
+            console.error('Failed to save URL params to sessionStorage:', e);
+        }
         return data;
     }
     
@@ -91,37 +114,53 @@ function getRevealData() {
             if (hashData && hashData.animation && hashData.gender) {
                 console.log('Found valid hash data:', hashData);
                 // Save to sessionStorage for future use
-                sessionStorage.setItem('genderRevealSelections', JSON.stringify(hashData));
-                return hashData;
+                const data = { animation: hashData.animation, gender: hashData.gender };
+                try {
+                    sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
+                } catch (e) {
+                    console.error('Failed to save hash data to sessionStorage:', e);
+                }
+                return data;
             }
         } catch (e) {
             console.log('Hash parsing failed:', e);
         }
     }
     
-    // Fallback to sessionStorage
+    // Fallback to sessionStorage with better format handling
     try {
         const stored = sessionStorage.getItem('genderRevealSelections');
         console.log('SessionStorage data:', stored); // Debug log
         if (stored) {
             const parsed = JSON.parse(stored);
             console.log('Parsed sessionStorage:', parsed); // Debug log
-            // Validate the data structure - check for the more robust format from choose.js
+            
+            // Handle both old and new data formats more robustly
             if (parsed && parsed.animation && parsed.gender) {
-                // Handle both old and new data formats
+                // Normalize the data to simple format
                 const data = {
                     animation: parsed.animation,
                     gender: parsed.gender
                 };
                 console.log('Valid sessionStorage data found:', data);
                 return data;
+            } else if (parsed && typeof parsed === 'object') {
+                // Try to extract from nested structure
+                console.log('Attempting to extract from nested data structure...');
+                const extractedData = extractDataFromObject(parsed);
+                if (extractedData && extractedData.animation && extractedData.gender) {
+                    console.log('Successfully extracted data:', extractedData);
+                    // Save normalized data back
+                    sessionStorage.setItem('genderRevealSelections', JSON.stringify(extractedData));
+                    return extractedData;
+                }
             }
         }
     } catch (e) {
         console.error('Error reading stored selections:', e);
     }
     
-    // Final fallback to localStorage backup
+    // Final fallback to localStorage backup with similar handling
     try {
         const backup = localStorage.getItem('genderRevealSelections_backup');
         console.log('Checking localStorage backup:', backup); // Debug log
@@ -135,7 +174,11 @@ function getRevealData() {
                     animation: parsed.animation,
                     gender: parsed.gender
                 };
-                sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
+                try {
+                    sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
+                } catch (e) {
+                    console.error('Failed to save backup data to sessionStorage:', e);
+                }
                 return data;
             }
         }
@@ -144,6 +187,26 @@ function getRevealData() {
     }
     
     console.log('No valid reveal data found - will redirect to choose page'); // Keep this for troubleshooting
+    return null;
+}
+
+function extractDataFromObject(obj) {
+    // Recursively search for animation and gender properties
+    if (!obj || typeof obj !== 'object') return null;
+    
+    // Direct properties
+    if (obj.animation && obj.gender) {
+        return { animation: obj.animation, gender: obj.gender };
+    }
+    
+    // Search nested objects
+    for (const key in obj) {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+            const result = extractDataFromObject(obj[key]);
+            if (result) return result;
+        }
+    }
+    
     return null;
 }
 
@@ -190,13 +253,91 @@ function startCountdownAndReveal() {
     // Double-check reveal data before starting countdown
     if (!revealData || !revealData.animation || !revealData.gender) {
         console.error('Reveal data missing during countdown start - attempting recovery');
-        revealData = getRevealData();
-        if (!revealData) {
-            console.error('Cannot recover reveal data - redirecting to choose');
-            redirectToChoose();
-            return;
-        }
+        
+        // Show user-friendly message instead of immediately redirecting
+        showRecoveryMessage();
+        
+        // Attempt multiple recovery strategies
+        attemptDataRecovery().then((recovered) => {
+            if (recovered) {
+                console.log('Data recovery successful, continuing with countdown');
+                hideRecoveryMessage();
+                proceedWithCountdown();
+            } else {
+                console.error('All recovery attempts failed - redirecting to choose');
+                setTimeout(() => {
+                    redirectToChoose();
+                }, 2000); // Give user time to read the message
+            }
+        });
+        return;
     }
+    
+    proceedWithCountdown();
+}
+
+function showRecoveryMessage() {
+    const preReveal = document.getElementById('preReveal');
+    if (preReveal) {
+        const recoveryDiv = document.createElement('div');
+        recoveryDiv.id = 'recoveryMessage';
+        recoveryDiv.innerHTML = `
+            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-4 text-center">
+                    <div class="text-4xl mb-4">🔄</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Preparing Your Reveal...</h3>
+                    <p class="text-gray-600 mb-4">We're setting up your animation. This will just take a moment.</p>
+                    <div class="flex justify-center">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(recoveryDiv);
+    }
+}
+
+function hideRecoveryMessage() {
+    const recoveryMessage = document.getElementById('recoveryMessage');
+    if (recoveryMessage) {
+        recoveryMessage.remove();
+    }
+}
+
+function attemptDataRecovery() {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        function tryRecovery() {
+            attempts++;
+            console.log(`Data recovery attempt ${attempts}/${maxAttempts}`);
+            
+            revealData = getRevealData();
+            
+            if (revealData && revealData.animation && revealData.gender) {
+                console.log('Recovery successful on attempt', attempts);
+                resolve(true);
+                return;
+            }
+            
+            if (attempts < maxAttempts) {
+                // Wait longer between attempts
+                setTimeout(tryRecovery, 1000 * attempts);
+            } else {
+                console.log('All recovery attempts failed');
+                resolve(false);
+            }
+        }
+        
+        tryRecovery();
+    });
+}
+
+function proceedWithCountdown() {
+    const countdown = document.getElementById('countdown');
+    const countdownNumber = document.getElementById('countdownNumber');
+    const startBtn = document.getElementById('startRevealBtn');
     
     // Persist data one more time before animation
     try {
@@ -463,24 +604,62 @@ function replayAnimation() {
 
 function redirectToChoose() {
     // Clear any stored selections that might be invalid
-    sessionStorage.removeItem('genderRevealSelections');
+    try {
+        sessionStorage.removeItem('genderRevealSelections');
+        localStorage.removeItem('genderRevealSelections_backup');
+    } catch (e) {
+        console.error('Error clearing storage:', e);
+    }
     
-    // Use the Jekyll baseurl configuration, but handle local development
-    const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
+    // Wait for SITE_CONFIG to be available if needed, but don't wait too long
+    const maxWaitTime = 500; // Shorter wait for redirects
+    const startTime = Date.now();
+    
+    function waitForConfigAndRedirect() {
+        const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
+        const isLocalhost = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
+        
+        // If we're on localhost or have waited long enough, proceed
+        if (isLocalhost || window.SITE_CONFIG || (Date.now() - startTime) > maxWaitTime) {
+            doRedirect(baseUrl);
+        } else {
+            // Wait a bit more for SITE_CONFIG to load
+            setTimeout(waitForConfigAndRedirect, 50);
+        }
+    }
+    
+    waitForConfigAndRedirect();
+}
+
+function doRedirect(baseUrl) {
     let chooseUrl;
     
     if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
         // Local development - use relative path
         chooseUrl = './choose.html';
     } else {
-        // Production - use baseUrl
-        chooseUrl = `${baseUrl}/choose.html`;
+        // Production - use baseUrl with fallback
+        const basePath = baseUrl || '.';
+        chooseUrl = `${basePath}/choose.html`;
     }
     
     console.log('Using baseUrl for redirect:', baseUrl); // Debug log
     console.log('Environment:', window.location.origin); // Debug log
     console.log('Redirecting to choose page:', chooseUrl); // Debug log
-    window.location.href = chooseUrl;
+    
+    try {
+        window.location.href = chooseUrl;
+    } catch (e) {
+        console.error('Primary redirect failed, trying fallback:', e);
+        // Fallback to relative path
+        try {
+            window.location.href = './choose.html';
+        } catch (e2) {
+            console.error('Fallback redirect failed, trying replace:', e2);
+            // Last resort - use replace
+            window.location.replace('./choose.html');
+        }
+    }
 }
 
 // Handle fullscreen change events
