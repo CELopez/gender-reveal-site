@@ -18,26 +18,53 @@ title: Gender Reveal - Create Magical Moments
 
         <!-- Preview Section -->
         <div class="max-w-4xl mx-auto mb-16">
-            <div class="bg-white rounded-3xl shadow-2xl p-8 mb-8">
-                <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Slot Machine Reveal</h2>
-                <div class="slot-preview bg-gradient-to-b from-gray-800 to-gray-900 rounded-2xl p-8 text-center relative">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 mb-8 relative overflow-hidden">
+                <!-- Animated background pattern -->
+                <div class="absolute inset-0 opacity-5">
+                    <div class="h-full w-full bg-gradient-to-br from-pink-500 via-purple-500 to-blue-500"></div>
+                </div>
+                
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-6 relative z-10">Slot Machine Reveal</h2>
+                <div class="slot-preview bg-gradient-to-b from-gray-800 via-gray-900 to-black rounded-2xl p-8 text-center relative overflow-hidden">
+                    <!-- Casino lights effect -->
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-400 rounded-t-2xl casino-lights"></div>
+                    <div class="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-400 rounded-b-2xl casino-lights"></div>
+                    
+                    <!-- Glowing title -->
+                    <div class="text-yellow-400 text-lg font-bold mb-6 preview-glow">LUCKY REVEAL</div>
+                    
                     <div class="flex justify-center space-x-4 mb-6">
-                        <div class="slot-reel-preview bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden" style="width: 80px; height: 80px;">
-                            <div class="preview-reel-item">?</div>
+                        <div class="slot-reel-preview bg-gradient-to-b from-gray-100 to-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden hover-spin" style="width: 80px; height: 80px;">
+                            <div class="preview-reel-item transition-all duration-300">?</div>
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-200 opacity-30"></div>
                         </div>
-                        <div class="slot-reel-preview bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden" style="width: 80px; height: 80px;">
-                            <div class="preview-reel-item">?</div>
+                        <div class="slot-reel-preview bg-gradient-to-b from-gray-100 to-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden hover-spin" style="width: 80px; height: 80px;">
+                            <div class="preview-reel-item transition-all duration-300">?</div>
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-200 opacity-30"></div>
                         </div>
-                        <div class="slot-reel-preview bg-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden" style="width: 80px; height: 80px;">
-                            <div class="preview-reel-item">?</div>
+                        <div class="slot-reel-preview bg-gradient-to-b from-gray-100 to-white rounded-lg p-4 text-2xl font-bold text-gray-800 shadow-inner relative overflow-hidden hover-spin" style="width: 80px; height: 80px;">
+                            <div class="preview-reel-item transition-all duration-300">?</div>
+                            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-200 opacity-30"></div>
                         </div>
                     </div>
+                    
+                    <!-- Enhanced handle with glow effect -->
                     <div class="slot-handle-preview absolute right-4 top-1/2 transform -translate-y-1/2">
-                        <div class="bg-red-500 rounded-full p-2 shadow-lg">
-                            <div class="w-4 h-8 bg-red-600 rounded-full"></div>
+                        <div class="bg-gradient-to-b from-red-400 to-red-600 rounded-full p-3 shadow-lg hover:shadow-red-500/50 transition-all duration-300 handle-glow">
+                            <div class="w-4 h-8 bg-gradient-to-b from-red-600 to-red-800 rounded-full"></div>
+                            <div class="absolute inset-0 rounded-full bg-red-500 opacity-20 animate-pulse"></div>
                         </div>
                     </div>
-                    <p class="text-white text-lg opacity-75">Experience the thrill of a slot machine reveal</p>
+                    
+                    <!-- Sparkle effects -->
+                    <div class="absolute top-4 left-4 text-yellow-300 text-xs animate-pulse sparkle">✨</div>
+                    <div class="absolute top-6 right-8 text-yellow-300 text-xs animate-pulse sparkle" style="animation-delay: 0.5s;">⭐</div>
+                    <div class="absolute bottom-4 left-8 text-yellow-300 text-xs animate-pulse sparkle" style="animation-delay: 1s;">💫</div>
+                    
+                    <p class="text-white text-lg opacity-90 font-medium relative z-10">Experience the thrill of a slot machine reveal</p>
+                    
+                    <!-- Subtle glow line at bottom -->
+                    <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-50"></div>
                 </div>
             </div>
             

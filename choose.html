@@ -39,30 +39,63 @@ title: Choose Your Reveal - Gender Reveal
             <div id="step1" class="step-content active">
                 <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Choose Your Animation</h2>
                 <div class="grid md:grid-cols-2 gap-8">
-                    <div class="animation-option bg-white rounded-3xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transform hover:scale-105 transition-all duration-300" 
+                    <div class="animation-option bg-white rounded-3xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden" 
                          data-animation="slot">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">🎰</div>
+                        <!-- Animated background -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-red-500/5 to-yellow-400/10 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        <div class="text-center relative z-10">
+                            <div class="text-6xl mb-4 animate-bounce">🎰</div>
                             <h3 class="text-2xl font-bold text-gray-800 mb-4">Slot Machine</h3>
                             <p class="text-gray-600 mb-6">Classic casino-style spinning reels that land on your reveal</p>
-                            <div class="slot-mini-preview bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg p-4">
-                                <div class="flex justify-center space-x-2">
-                                    <div class="w-8 h-8 bg-white rounded text-center text-sm font-bold leading-8">?</div>
-                                    <div class="w-8 h-8 bg-white rounded text-center text-sm font-bold leading-8">?</div>
-                                    <div class="w-8 h-8 bg-white rounded text-center text-sm font-bold leading-8">?</div>
+                            
+                            <!-- Enhanced mini preview -->
+                            <div class="slot-mini-preview bg-gradient-to-b from-gray-800 via-gray-900 to-black rounded-lg p-4 relative overflow-hidden">
+                                <!-- Casino lights -->
+                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-400 mini-casino-lights"></div>
+                                
+                                <div class="flex justify-center space-x-2 relative">
+                                    <div class="w-8 h-8 bg-gradient-to-b from-gray-100 to-white rounded text-center text-sm font-bold leading-8 mini-reel shadow-inner">?</div>
+                                    <div class="w-8 h-8 bg-gradient-to-b from-gray-100 to-white rounded text-center text-sm font-bold leading-8 mini-reel shadow-inner">?</div>
+                                    <div class="w-8 h-8 bg-gradient-to-b from-gray-100 to-white rounded text-center text-sm font-bold leading-8 mini-reel shadow-inner">?</div>
                                 </div>
+                                
+                                <!-- Mini handle -->
+                                <div class="absolute right-1 top-1/2 transform -translate-y-1/2">
+                                    <div class="w-2 h-4 bg-gradient-to-b from-red-400 to-red-600 rounded-full"></div>
+                                </div>
+                                
+                                <!-- Sparkles -->
+                                <div class="absolute top-1 left-1 text-yellow-300 text-xs animate-pulse">✨</div>
+                                <div class="absolute bottom-1 right-2 text-yellow-300 text-xs animate-pulse" style="animation-delay: 0.5s;">⭐</div>
+                            </div>
+                            
+                            <!-- Popularity badge -->
+                            <div class="mt-4">
+                                <span class="inline-block bg-gradient-to-r from-green-400 to-green-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                    ⭐ Most Popular
+                                </span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="animation-option bg-white rounded-3xl shadow-xl p-8 opacity-50 cursor-not-allowed" 
+                    <div class="animation-option bg-white rounded-3xl shadow-xl p-8 opacity-50 cursor-not-allowed relative overflow-hidden" 
                          data-animation="fireworks">
-                        <div class="text-center">
+                        <!-- Coming soon overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-gray-100/80 to-gray-200/80 flex items-center justify-center z-20">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-gray-700 mb-2">Coming Soon!</div>
+                                <div class="text-sm text-gray-600">Stay tuned for more magic</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center relative">
                             <div class="text-6xl mb-4">🎆</div>
                             <h3 class="text-2xl font-bold text-gray-800 mb-4">Fireworks <span class="text-sm text-gray-500">(Coming Soon)</span></h3>
                             <p class="text-gray-600 mb-6">Spectacular fireworks display revealing your special news</p>
-                            <div class="bg-gray-200 rounded-lg p-4 h-16 flex items-center justify-center">
-                                <span class="text-gray-500">Preview Coming Soon</span>
+                            <div class="bg-gray-200 rounded-lg p-4 h-16 flex items-center justify-center relative overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-blue-400/20 animate-pulse"></div>
+                                <span class="text-gray-500 relative z-10">Preview Coming Soon</span>
                             </div>
                         </div>
                     </div>
