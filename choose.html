@@ -1,0 +1,134 @@
+---
+layout: default
+title: Choose Your Reveal - Gender Reveal
+---
+
+<div class="bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-4">
+                Create Your Reveal
+            </h1>
+            <p class="text-xl text-gray-700">Follow these steps to set up your perfect gender reveal</p>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="max-w-2xl mx-auto mb-12">
+            <div class="flex items-center justify-between mb-8">
+                <div class="step-indicator active" id="step1-indicator">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Animation</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-indicator" id="step2-indicator">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Gender</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-indicator" id="step3-indicator">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Confirm</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step Content -->
+        <div class="max-w-4xl mx-auto">
+            <!-- Step 1: Choose Animation -->
+            <div id="step1" class="step-content active">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Choose Your Animation</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="animation-option bg-white rounded-3xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transform hover:scale-105 transition-all duration-300" 
+                         data-animation="slot">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">🎰</div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">Slot Machine</h3>
+                            <p class="text-gray-600 mb-6">Classic casino-style spinning reels that land on your reveal</p>
+                            <div class="slot-mini-preview bg-gradient-to-b from-gray-800 to-gray-900 rounded-lg p-4">
+                                <div class="flex justify-center space-x-2">
+                                    <div class="w-8 h-8 bg-white rounded text-center text-sm font-bold leading-8">?</div>
+                                    <div class="w-8 h-8 bg-white rounded text-center text-sm font-bold leading-8">?</div>
+                                    <div class="w-8 h-8 bg-white rounded text-center text-sm font-bold leading-8">?</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="animation-option bg-white rounded-3xl shadow-xl p-8 opacity-50 cursor-not-allowed" 
+                         data-animation="fireworks">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">🎆</div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">Fireworks <span class="text-sm text-gray-500">(Coming Soon)</span></h3>
+                            <p class="text-gray-600 mb-6">Spectacular fireworks display revealing your special news</p>
+                            <div class="bg-gray-200 rounded-lg p-4 h-16 flex items-center justify-center">
+                                <span class="text-gray-500">Preview Coming Soon</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Choose Gender -->
+            <div id="step2" class="step-content">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Select the Gender</h2>
+                <div class="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+                    <div class="gender-option bg-gradient-to-br from-blue-400 to-blue-600 rounded-3xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-white text-center" 
+                         data-gender="boy">
+                        <div class="text-6xl mb-4">👶</div>
+                        <h3 class="text-3xl font-bold mb-2">It's a Boy!</h3>
+                        <p class="text-blue-100">Blue celebration theme</p>
+                    </div>
+                    
+                    <div class="gender-option bg-gradient-to-br from-pink-400 to-pink-600 rounded-3xl shadow-xl p-8 cursor-pointer hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-white text-center" 
+                         data-gender="girl">
+                        <div class="text-6xl mb-4">👶</div>
+                        <h3 class="text-3xl font-bold mb-2">It's a Girl!</h3>
+                        <p class="text-pink-100">Pink celebration theme</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Confirmation -->
+            <div id="step3" class="step-content">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Ready for Your Reveal?</h2>
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white rounded-3xl shadow-xl p-8 text-center">
+                        <div id="confirmation-content">
+                            <div class="text-6xl mb-4" id="confirm-icon">🎰</div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2" id="confirm-animation">Slot Machine</h3>
+                            <p class="text-xl text-gray-600 mb-6" id="confirm-gender">Gender: Boy</p>
+                            <div class="space-y-4">
+                                <button onclick="startReveal()" 
+                                        class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                                    Start the Reveal! 🎉
+                                </button>
+                                <button onclick="goToStep(2)" 
+                                        class="w-full bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full hover:bg-gray-400 transition-all duration-300">
+                                    Go Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="max-w-4xl mx-auto mt-12">
+            <div class="flex justify-between">
+                <button id="prevBtn" onclick="previousStep()" 
+                        class="bg-gray-300 text-gray-700 font-bold py-3 px-8 rounded-full hover:bg-gray-400 transition-all duration-300 hidden">
+                    ← Previous
+                </button>
+                <button id="nextBtn" onclick="nextStep()" 
+                        class="bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ml-auto opacity-50 cursor-not-allowed" 
+                        disabled>
+                    Next →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ site.baseurl }}/assets/js/choose.js"></script>
+</div>
