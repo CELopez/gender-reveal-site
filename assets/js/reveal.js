@@ -256,6 +256,9 @@ function startAnimation() {
         case 'slot':
             startSlotMachineAnimation();
             break;
+        case 'wheel':
+            startWheelAnimation();
+            break;
         case 'fireworks':
             // Future implementation
             console.log('Fireworks animation not yet implemented');
@@ -336,6 +339,36 @@ function startSlotMachineAnimation() {
         }
     } else {
         console.error('Slot machine element not found');
+    }
+}
+
+function startWheelAnimation() {
+    const wheelContainer = document.getElementById('wheelContainer');
+    
+    if (wheelContainer) {
+        wheelContainer.classList.remove('hidden');
+        
+        // Ensure reveal data is still available
+        if (!revealData || !revealData.gender) {
+            console.error('Reveal data lost during animation start - attempting to recover');
+            revealData = getRevealData();
+            if (!revealData) {
+                console.error('Could not recover reveal data - using fallback');
+                revealData = { animation: 'wheel', gender: 'boy' }; // Default fallback
+            }
+        }
+        
+        // Initialize wheel animation
+        if (typeof initWheel === 'function') {
+            console.log('Starting wheel animation for:', revealData.gender); // Debug log
+            initWheel(revealData.gender);
+        } else {
+            console.error('Wheel animation not loaded - falling back to basic animation');
+            // Fallback animation
+            showBasicAnimation();
+        }
+    } else {
+        console.error('Wheel container element not found');
     }
 }
 

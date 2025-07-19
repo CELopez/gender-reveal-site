@@ -51,7 +51,7 @@ function setupAnimationSelection() {
             const animation = this.getAttribute('data-animation');
             
             // Only allow selection of available animations
-            if (animation === 'slot') {
+            if (animation === 'slot' || animation === 'wheel') {
                 selectAnimation(animation, this);
             }
         });
@@ -253,6 +253,7 @@ function updateConfirmationContent() {
         if (confirmIcon) {
             const icons = {
                 'slot': '🎰',
+                'wheel': '🎡',
                 'fireworks': '🎆'
             };
             confirmIcon.textContent = icons[selectedAnimation] || '🎰';
@@ -262,6 +263,7 @@ function updateConfirmationContent() {
         if (confirmAnimation) {
             const names = {
                 'slot': 'Slot Machine',
+                'wheel': 'Wheel of Fortune',
                 'fireworks': 'Fireworks'
             };
             confirmAnimation.textContent = names[selectedAnimation] || 'Slot Machine';
