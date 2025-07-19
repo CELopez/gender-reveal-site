@@ -277,45 +277,19 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     .slot-machine {
-        padding: 1.5rem;
+        padding: 1rem;
+        max-width: 100%;
     }
     
-    .slot-reel {
-        width: 80px;
-        height: 120px;
-        margin: 0 5px;
-    }
-    
-    .reel-item {
-        height: 120px;
-        font-size: 2.5rem;
-    }
-    
-    .slot-handle {
-        right: -40px;
-    }
-    
-    .result-text {
-        font-size: 4rem !important;
-    }
-    
-    .step-line {
-        margin: 0 0.5rem;
-    }
-    
-    h1 {
-        font-size: 3rem !important;
-    }
-    
-    .container {
+    .slot-display {
+        height: 150px;
         padding: 1rem;
     }
-}
-
-@media (max-width: 480px) {
+    
     .slot-reel {
-        width: 60px;
+        width: 70px;
         height: 100px;
+        margin: 0 3px;
     }
     
     .reel-item {
@@ -323,8 +297,92 @@ body {
         font-size: 2rem;
     }
     
+    .slot-handle {
+        right: -30px;
+    }
+    
+    .handle {
+        transform: scale(0.8);
+    }
+    
     .result-text {
+        font-size: 3.5rem !important;
+        line-height: 1.1;
+    }
+    
+    .step-line {
+        margin: 0 0.5rem;
+    }
+    
+    h1 {
+        font-size: 2.5rem !important;
+        line-height: 1.2;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+    
+    /* Better touch targets for mobile */
+    .animation-option, .gender-option {
+        min-height: 120px;
+        padding: 1.5rem;
+    }
+    
+    /* Improved button sizes for mobile */
+    button {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+    
+    /* Better spacing for mobile */
+    .grid {
+        gap: 1rem;
+    }
+    
+    /* Fullscreen mobile optimization */
+    .fullscreen-active .slot-machine {
+        padding: 0.5rem;
+    }
+    
+    .fullscreen-active .result-text {
         font-size: 3rem !important;
+        padding: 0 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .slot-machine {
+        padding: 0.5rem;
+    }
+    
+    .slot-display {
+        height: 120px;
+        padding: 0.5rem;
+    }
+    
+    .slot-reel {
+        width: 55px;
+        height: 80px;
+        margin: 0 2px;
+    }
+    
+    .reel-item {
+        height: 80px;
+        font-size: 1.5rem;
+    }
+    
+    .slot-handle {
+        right: -25px;
+    }
+    
+    .handle {
+        transform: scale(0.7);
+    }
+    
+    .result-text {
+        font-size: 2.5rem !important;
+        padding: 0 0.5rem;
     }
     
     .step-indicator {
@@ -332,9 +390,89 @@ body {
     }
     
     .step-number {
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 1rem;
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.9rem;
+    }
+    
+    h1 {
+        font-size: 2rem !important;
+    }
+    
+    /* Optimize for very small screens */
+    .animation-option, .gender-option {
+        padding: 1rem;
+        min-height: 100px;
+    }
+    
+    .animation-option h3, .gender-option h3 {
+        font-size: 1.25rem;
+    }
+    
+    /* Better mobile touch experience */
+    .slot-reel {
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Improved mobile confetti */
+    .confetti-piece {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .slot-reel {
+        width: 45px;
+        height: 70px;
+        margin: 0 1px;
+    }
+    
+    .reel-item {
+        height: 70px;
+        font-size: 1.2rem;
+    }
+    
+    .result-text {
+        font-size: 2rem !important;
+    }
+    
+    h1 {
+        font-size: 1.75rem !important;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+    .slot-machine {
+        padding: 0.25rem;
+    }
+    
+    .slot-display {
+        height: 100px;
+    }
+    
+    .slot-reel {
+        width: 60px;
+        height: 80px;
+    }
+    
+    .reel-item {
+        height: 80px;
+        font-size: 1.5rem;
+    }
+    
+    .result-text {
+        font-size: 2rem !important;
+    }
+    
+    h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Hide some elements in landscape mobile for space */
+    .fullscreen-active h1 {
+        display: none;
     }
 }
 
@@ -380,6 +518,150 @@ body {
 
 .slot-preview:hover .slot-handle-preview {
     transform: translateY(-40%) translateX(5px);
+}
+
+/* Enhanced Landing Page Animations */
+.casino-lights {
+    animation: casinoLights 2s ease-in-out infinite;
+}
+
+@keyframes casinoLights {
+    0%, 100% { 
+        background: linear-gradient(90deg, #fbbf24, #ef4444, #fbbf24);
+        opacity: 0.8;
+    }
+    50% { 
+        background: linear-gradient(90deg, #f59e0b, #dc2626, #f59e0b);
+        opacity: 1;
+    }
+}
+
+.preview-glow {
+    text-shadow: 0 0 10px #fbbf24, 0 0 20px #fbbf24, 0 0 30px #fbbf24;
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { 
+        text-shadow: 0 0 10px #fbbf24, 0 0 20px #fbbf24, 0 0 30px #fbbf24;
+    }
+    50% { 
+        text-shadow: 0 0 15px #fbbf24, 0 0 25px #fbbf24, 0 0 35px #fbbf24;
+    }
+}
+
+.handle-glow:hover {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6), 0 0 40px rgba(239, 68, 68, 0.4);
+}
+
+.hover-spin:hover .preview-reel-item {
+    animation: quickSpin 1s ease-in-out;
+}
+
+@keyframes quickSpin {
+    0% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-5px) rotate(90deg); }
+    50% { transform: translateY(0) rotate(180deg); }
+    75% { transform: translateY(5px) rotate(270deg); }
+    100% { transform: translateY(0) rotate(360deg); }
+}
+
+.sparkle {
+    animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+@keyframes sparkleFloat {
+    0%, 100% { 
+        transform: translateY(0) scale(1);
+        opacity: 0.6;
+    }
+    50% { 
+        transform: translateY(-10px) scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* Choose Page Enhanced Animations */
+.mini-casino-lights {
+    animation: miniCasinoLights 1.5s ease-in-out infinite;
+}
+
+@keyframes miniCasinoLights {
+    0%, 100% { 
+        background: linear-gradient(90deg, #fbbf24, #ef4444, #fbbf24);
+    }
+    50% { 
+        background: linear-gradient(90deg, #f59e0b, #dc2626, #f59e0b);
+    }
+}
+
+.mini-reel {
+    transition: all 0.3s ease;
+}
+
+.animation-option:hover .mini-reel {
+    animation: miniReelSpin 1s ease-in-out;
+}
+
+@keyframes miniReelSpin {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-3px); }
+    50% { transform: translateY(0); }
+    75% { transform: translateY(3px); }
+}
+
+.animation-option:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+.animation-option.selected {
+    border-color: #ec4899;
+    background: linear-gradient(135deg, #fef7ff, #fdf4ff);
+    box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2), 0 0 0 3px rgba(236, 72, 153, 0.3);
+}
+
+/* Enhanced Gender Option Hover Effects */
+.gender-option {
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.gender-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.gender-option:hover::before {
+    left: 100%;
+}
+
+.gender-option:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+}
+
+.gender-option.selected {
+    border-color: #ffffff;
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+    animation: selectedGlow 2s ease-in-out infinite;
+}
+
+@keyframes selectedGlow {
+    0%, 100% {
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.5), 0 0 60px rgba(255, 255, 255, 0.3);
+    }
 }
 
 /* Smooth Transitions */

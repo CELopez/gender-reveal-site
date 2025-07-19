@@ -14,10 +14,11 @@ function initRevealPage() {
     
     if (!revealData || !revealData.animation || !revealData.gender) {
         console.log('No valid reveal data found, redirecting...'); // Debug log
-        // Add a small delay to prevent immediate redirect loops
+        // Add a longer delay and show a message before redirecting
+        showRedirectMessage();
         setTimeout(() => {
             redirectToChoose();
-        }, 1000);
+        }, 3000);
         return;
     }
     
@@ -36,36 +37,92 @@ function initRevealPage() {
     }
 }
 
+function showRedirectMessage() {
+    const preReveal = document.getElementById('preReveal');
+    if (preReveal) {
+        preReveal.innerHTML = `
+            <div class="text-center max-w-2xl mx-auto px-4">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-8">
+                    Setting Up Your Reveal...
+                </h1>
+                <div class="bg-white rounded-3xl shadow-2xl p-12 mb-8">
+                    <div class="text-6xl mb-6">🎰</div>
+                    <p class="text-xl text-gray-600 mb-8">Redirecting you to the setup page...</p>
+                    <div class="flex justify-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
 function getRevealData() {
-    // console.log('Getting reveal data...'); // Debug log
-    // console.log('Current URL:', window.location.href); // Debug log
+    console.log('Getting reveal data...'); // Debug log
+    console.log('Current URL:', window.location.href); // Debug log
     
     // First try URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const animation = urlParams.get('animation');
     const gender = urlParams.get('gender');
     
-    // console.log('URL params - animation:', animation, 'gender:', gender); // Debug log
+    console.log('URL params - animation:', animation, 'gender:', gender); // Debug log
     
     if (animation && gender) {
-        // console.log('Found valid URL parameters'); // Debug log
-        return { animation, gender };
+        console.log('Found valid URL parameters'); // Debug log
+        // Save to sessionStorage for future use
+        const data = { animation, gender };
+        sessionStorage.setItem('genderRevealSelections', JSON.stringify(data));
+        return data;
     }
     
     // Fallback to sessionStorage
     try {
         const stored = sessionStorage.getItem('genderRevealSelections');
-        // console.log('SessionStorage data:', stored); // Debug log
+        console.log('SessionStorage data:', stored); // Debug log
         if (stored) {
             const parsed = JSON.parse(stored);
-            // console.log('Parsed sessionStorage:', parsed); // Debug log
-            return parsed;
+            console.log('Parsed sessionStorage:', parsed); // Debug log
+            // Validate the data structure
+            if (parsed && parsed.animation && parsed.gender) {
+                return parsed;
+            }
         }
     } catch (e) {
         console.error('Error reading stored selections:', e);
     }
     
-    console.log('No valid reveal data found - redirecting to choose page'); // Keep this for troubleshooting
+    // Check if we're coming from the choose page with hash fragments (alternative method)
+    const hash = window.location.hash;
+    if (hash) {
+        try {
+            const hashData = JSON.parse(decodeURIComponent(hash.substring(1)));
+            if (hashData && hashData.animation && hashData.gender) {
+                console.log('Found valid hash data:', hashData);
+                return hashData;
+            }
+        } catch (e) {
+            // Hash is not JSON, ignore
+        }
+    }
+    
+    // Final fallback to localStorage backup
+    try {
+        const backup = localStorage.getItem('genderRevealSelections_backup');
+        console.log('Checking localStorage backup:', backup); // Debug log
+        if (backup) {
+            const parsed = JSON.parse(backup);
+            console.log('Parsed localStorage backup:', parsed); // Debug log
+            if (parsed && parsed.animation && parsed.gender) {
+                console.log('Using localStorage backup data');
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.error('Error reading localStorage backup:', e);
+    }
+    
+    console.log('No valid reveal data found - will redirect to choose page'); // Keep this for troubleshooting
     return null;
 }
 

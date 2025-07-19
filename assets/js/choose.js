@@ -282,7 +282,7 @@ function startReveal() {
         return;
     }
     
-    // Save selections to sessionStorage
+    // Save selections to sessionStorage with more robust data
     saveSelections();
     
     // Track reveal start
@@ -293,20 +293,32 @@ function startReveal() {
         });
     }
     
-    // Navigate to reveal page with parameters
-    // Use the Jekyll baseurl configuration
+    // Multiple navigation methods for better compatibility
     const baseUrl = window.SITE_CONFIG ? window.SITE_CONFIG.baseUrl : '';
+    
+    // Method 1: URL parameters (primary)
     const revealUrl = `${baseUrl}/reveal.html?animation=${encodeURIComponent(selectedAnimation)}&gender=${encodeURIComponent(selectedGender)}`;
     
-    // console.log('Using baseUrl:', baseUrl); // Debug log
-    // console.log('Navigating to:', revealUrl); // Debug log
+    // Method 2: Hash fragment (backup)
+    const revealUrlHash = `${baseUrl}/reveal.html#${encodeURIComponent(JSON.stringify({animation: selectedAnimation, gender: selectedGender}))}`;
+    
+    console.log('Using baseUrl:', baseUrl); // Debug log
+    console.log('Primary navigation URL:', revealUrl); // Debug log
+    console.log('Backup navigation URL:', revealUrlHash); // Debug log
     
     // Add fade transition
     document.body.style.opacity = '0';
     document.body.style.transition = 'opacity 0.3s ease';
     
     setTimeout(() => {
-        window.location.href = revealUrl;
+        // Try the primary method first
+        try {
+            window.location.href = revealUrl;
+        } catch (e) {
+            console.log('Primary navigation failed, trying backup method:', e);
+            // Fallback to hash method
+            window.location.href = revealUrlHash;
+        }
     }, 300);
 }
 
@@ -314,12 +326,23 @@ function saveSelections() {
     const selections = {
         animation: selectedAnimation,
         gender: selectedGender,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        source: 'choose_page',
+        version: '1.1' // Version for compatibility tracking
     };
     
-    // console.log('Saving selections:', selections); // Debug log
-    sessionStorage.setItem('genderRevealSelections', JSON.stringify(selections));
-    // console.log('Selections saved to sessionStorage'); // Debug log
+    console.log('Saving selections:', selections); // Debug log
+    
+    try {
+        sessionStorage.setItem('genderRevealSelections', JSON.stringify(selections));
+        console.log('Selections saved to sessionStorage successfully'); // Debug log
+        
+        // Also save to localStorage as additional backup
+        localStorage.setItem('genderRevealSelections_backup', JSON.stringify(selections));
+        console.log('Backup selections saved to localStorage'); // Debug log
+    } catch (e) {
+        console.error('Error saving selections:', e);
+    }
 }
 
 // Global functions
