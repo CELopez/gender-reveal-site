@@ -1,0 +1,361 @@
+/* Custom Styles for Gender Reveal Site */
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* Step Indicator Styles */
+.step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.step-number {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.125rem;
+    transition: all 0.3s ease;
+}
+
+.step-indicator.active .step-number {
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    color: white;
+    transform: scale(1.1);
+}
+
+.step-indicator.completed .step-number {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.step-text {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.step-indicator.active .step-text {
+    color: #374151;
+    font-weight: 600;
+}
+
+.step-line {
+    height: 2px;
+    background-color: #e5e7eb;
+    flex: 1;
+    margin: 0 1rem;
+    margin-top: 1.5rem;
+}
+
+.step-indicator.active + .step-line {
+    background: linear-gradient(90deg, #ec4899, #8b5cf6);
+}
+
+/* Step Content */
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation Option Styles */
+.animation-option {
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+}
+
+.animation-option:hover:not(.cursor-not-allowed) {
+    border-color: #8b5cf6;
+}
+
+.animation-option.selected {
+    border-color: #ec4899;
+    background: linear-gradient(135deg, #fef7ff, #fdf4ff);
+}
+
+/* Gender Option Styles */
+.gender-option {
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+}
+
+.gender-option.selected {
+    border-color: #ffffff;
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+/* Slot Machine Styles */
+.slot-machine {
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.slot-display {
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slot-reel {
+    width: 120px;
+    height: 160px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    margin: 0 10px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.reel-items {
+    position: absolute;
+    width: 100%;
+    transition: transform 0.1s ease-out;
+}
+
+.reel-item {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: bold;
+    color: #1f2937;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.reel-item:last-child {
+    border-bottom: none;
+}
+
+/* Slot Handle */
+.slot-handle {
+    position: absolute;
+    right: -60px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.handle {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.handle:hover {
+    transform: scale(1.1);
+}
+
+.handle.pulled {
+    transform: translateY(20px) scale(0.95);
+}
+
+/* Result Styles */
+.result-text {
+    background: linear-gradient(45deg, #ec4899, #8b5cf6, #06b6d4);
+    background-size: 200% 200%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 2s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Confetti Animation */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #ec4899;
+    animation: confettiFall 3s linear infinite;
+}
+
+.confetti-piece:nth-child(2n) {
+    background: #8b5cf6;
+    animation-delay: 0.5s;
+}
+
+.confetti-piece:nth-child(3n) {
+    background: #06b6d4;
+    animation-delay: 1s;
+}
+
+.confetti-piece:nth-child(4n) {
+    background: #f59e0b;
+    animation-delay: 1.5s;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .slot-machine {
+        padding: 1.5rem;
+    }
+    
+    .slot-reel {
+        width: 80px;
+        height: 120px;
+        margin: 0 5px;
+    }
+    
+    .reel-item {
+        height: 120px;
+        font-size: 2.5rem;
+    }
+    
+    .slot-handle {
+        right: -40px;
+    }
+    
+    .result-text {
+        font-size: 4rem !important;
+    }
+    
+    .step-line {
+        margin: 0 0.5rem;
+    }
+    
+    h1 {
+        font-size: 3rem !important;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .slot-reel {
+        width: 60px;
+        height: 100px;
+    }
+    
+    .reel-item {
+        height: 100px;
+        font-size: 2rem;
+    }
+    
+    .result-text {
+        font-size: 3rem !important;
+    }
+    
+    .step-indicator {
+        font-size: 0.8rem;
+    }
+    
+    .step-number {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Fullscreen Styles */
+.fullscreen-active {
+    background: black !important;
+}
+
+.fullscreen-active * {
+    cursor: none;
+}
+
+/* Smooth Transitions */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
