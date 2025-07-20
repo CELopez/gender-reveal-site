@@ -575,6 +575,7 @@ function setupPreRevealScreen() {
         if (revealIcon) {
             const icons = {
                 'slot': '🎰',
+                'wheel': '🎡',
                 'fireworks': '🎆'
             };
             revealIcon.textContent = icons[revealData.animation] || '🎰';
@@ -584,6 +585,7 @@ function setupPreRevealScreen() {
         if (revealType) {
             const names = {
                 'slot': 'Slot Machine Reveal',
+                'wheel': 'Wheel of Fortune Reveal',
                 'fireworks': 'Fireworks Reveal'
             };
             revealType.textContent = names[revealData.animation] || 'Slot Machine Reveal';
