@@ -25,61 +25,190 @@ function initLandingPage() {
 
 function initSlotPreview() {
     const slotPreview = document.querySelector('.slot-preview');
-    const reelItems = document.querySelectorAll('.preview-reel-item');
+    const handleGrip = document.querySelector('.handle-grip');
     
-    if (!slotPreview || reelItems.length === 0) return;
+    if (!slotPreview) return;
+    
+    // Add handle click interaction
+    if (handleGrip) {
+        handleGrip.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Add pull animation
+            this.style.transform = 'translateY(12px) scale(0.95)';
+            this.style.transition = 'transform 0.1s ease';
+            
+            setTimeout(() => {
+                this.style.transform = '';
+                this.style.transition = '';
+                startPreviewAnimation();
+            }, 150);
+        });
+        
+        // Add cursor pointer
+        handleGrip.style.cursor = 'pointer';
+        handleGrip.title = 'Click to spin!';
+    }
     
     // Add interactive hover effects
     slotPreview.addEventListener('mouseenter', function() {
-        startPreviewAnimation();
+        // Don't auto-start on hover anymore, let user click handle
+        this.style.transform = 'scale(1.02)';
+        this.style.transition = 'transform 0.3s ease';
     });
     
     slotPreview.addEventListener('mouseleave', function() {
-        resetPreviewAnimation();
+        this.style.transform = '';
+        this.style.transition = '';
     });
     
-    // Auto-demo every 5 seconds
+    // Auto-demo every 8 seconds (less frequent since we have click interaction)
     setInterval(() => {
         if (!slotPreview.matches(':hover')) {
             demoPreviewAnimation();
         }
-    }, 5000);
+    }, 8000);
 }
 
 function startPreviewAnimation() {
-    const reelItems = document.querySelectorAll('.preview-reel-item');
-    const symbols = ['B', 'O', 'Y', '?', 'G', 'I', 'R', 'L'];
+    const reelStrips = document.querySelectorAll('.preview-reel-strip');
+    const slotPreview = document.querySelector('.slot-preview');
+    const isGirl = Math.random() > 0.5; // Randomly choose between boy and girl
+    const targetWord = isGirl ? ['G', 'I', 'R'] : ['B', 'O', 'Y'];
+    const allLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
     
-    reelItems.forEach((item, index) => {
-        let currentIndex = 0;
-        const interval = setInterval(() => {
-            item.textContent = symbols[currentIndex % symbols.length];
-            currentIndex++;
+    // Add spinning effect to the whole machine
+    if (slotPreview) {
+        slotPreview.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.5)';
+        slotPreview.style.transition = 'box-shadow 0.3s ease';
+    }
+    
+    let reelsSpinning = 0;
+    const totalReels = reelStrips.length;
+    
+    reelStrips.forEach((strip, reelIndex) => {
+        // Clear existing animation
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        
+        // Create spinning letters for this reel
+        const items = strip.children;
+        
+        // Fill with random letters first, then target letter
+        for (let i = 0; i < items.length - 1; i++) {
+            items[i].textContent = allLetters[Math.floor(Math.random() * allLetters.length)];
+        }
+        
+        // Set the target letter for this reel position
+        if (targetWord[reelIndex]) {
+            items[items.length - 1].textContent = targetWord[reelIndex];
+        }
+        
+        reelsSpinning++;
+        
+        // Start spinning animation with delay for each reel
+        setTimeout(() => {
+            // Fast spinning first
+            let spinCount = 0;
+            const maxSpins = 15 + (reelIndex * 5); // Different spin counts for each reel
             
-            if (currentIndex > 8) {
-                clearInterval(interval);
-                // Show final reveal after animation
-                setTimeout(() => {
-                    const finalSymbols = Math.random() > 0.5 ? ['B', 'O', 'Y'] : ['G', 'I', 'R'];
-                    item.textContent = finalSymbols[index] || '?';
-                    item.style.color = Math.random() > 0.5 ? '#3b82f6' : '#ec4899';
-                    
-                    // Reset after showing result
-                    setTimeout(() => {
-                        item.textContent = '?';
-                        item.style.color = '';
-                    }, 2000);
-                }, 500);
+            // Add spinning visual effect to this reel
+            const reelContainer = strip.closest('.slot-reel-preview');
+            if (reelContainer) {
+                reelContainer.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.5)';
+                reelContainer.style.transform = 'scale(1.05)';
             }
-        }, 150 + (index * 50)); // Staggered timing
+            
+            const spinInterval = setInterval(() => {
+                // Rotate through random letters quickly
+                for (let i = 0; i < items.length - 1; i++) {
+                    items[i].textContent = allLetters[Math.floor(Math.random() * allLetters.length)];
+                }
+                
+                spinCount++;
+                
+                if (spinCount >= maxSpins) {
+                    clearInterval(spinInterval);
+                    
+                    // Stop at target position after a brief moment
+                    setTimeout(() => {
+                        // Calculate final position to show target letter
+                        const targetPosition = -(items.length - 1) * 80; // 80px per item
+                        strip.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                        strip.style.transform = `translateY(${targetPosition}px)`;
+                        
+                        // Remove spinning effect from this reel
+                        if (reelContainer) {
+                            reelContainer.style.boxShadow = '';
+                            reelContainer.style.transform = '';
+                            reelContainer.style.transition = 'all 0.3s ease';
+                        }
+                        
+                        // Add winning glow effect
+                        setTimeout(() => {
+                            const targetItem = items[items.length - 1];
+                            targetItem.style.color = isGirl ? '#ec4899' : '#3b82f6';
+                            targetItem.style.textShadow = `0 0 10px ${isGirl ? '#ec4899' : '#3b82f6'}`;
+                            targetItem.style.transform = 'scale(1.1)';
+                            targetItem.style.transition = 'all 0.3s ease';
+                        }, 800);
+                        
+                        reelsSpinning--;
+                        if (reelsSpinning === 0) {
+                            // All reels stopped, show final celebration
+                            setTimeout(() => {
+                                showPreviewCelebration(isGirl);
+                            }, 1000);
+                        }
+                    }, 200);
+                }
+            }, 100);
+        }, reelIndex * 300); // Stagger the start of each reel
     });
+    
+    // Reset everything after showing the result
+    setTimeout(() => {
+        resetPreviewAnimation();
+    }, 7000);
 }
 
 function resetPreviewAnimation() {
-    const reelItems = document.querySelectorAll('.preview-reel-item');
-    reelItems.forEach(item => {
-        item.textContent = '?';
-        item.style.color = '';
+    const reelStrips = document.querySelectorAll('.preview-reel-strip');
+    const slotPreview = document.querySelector('.slot-preview');
+    
+    // Reset slot machine styling
+    if (slotPreview) {
+        slotPreview.style.boxShadow = '';
+        slotPreview.style.background = '';
+        slotPreview.style.transform = '';
+        slotPreview.style.transition = '';
+        
+        // Remove any sparkles
+        const sparkles = slotPreview.querySelectorAll('div[style*="sparkleUp"]');
+        sparkles.forEach(sparkle => sparkle.remove());
+    }
+    
+    reelStrips.forEach(strip => {
+        // Reset position and styling
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        
+        // Reset reel container styling
+        const reelContainer = strip.closest('.slot-reel-preview');
+        if (reelContainer) {
+            reelContainer.style.boxShadow = '';
+            reelContainer.style.transform = '';
+            reelContainer.style.transition = '';
+        }
+        
+        // Reset all reel items
+        const items = strip.children;
+        for (let i = 0; i < items.length; i++) {
+            items[i].textContent = '?';
+            items[i].style.color = '';
+            items[i].style.textShadow = '';
+            items[i].style.transform = '';
+            items[i].style.transition = '';
+        }
     });
 }
 
@@ -95,6 +224,51 @@ function demoPreviewAnimation() {
             slotPreview.classList.remove('demo-active');
         }, 3000);
     }
+}
+
+function showPreviewCelebration(isGirl) {
+    const slotPreview = document.querySelector('.slot-preview');
+    if (slotPreview) {
+        // Flash the machine with the gender color
+        slotPreview.style.boxShadow = `0 0 40px ${isGirl ? '#ec4899' : '#3b82f6'}`;
+        slotPreview.style.background = `linear-gradient(45deg, ${isGirl ? 'rgba(236, 72, 153, 0.1)' : 'rgba(59, 130, 246, 0.1)'}, transparent)`;
+        
+        // Add some sparkles
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                createSparkle(slotPreview, isGirl);
+            }, i * 200);
+        }
+        
+        // Reset after celebration
+        setTimeout(() => {
+            slotPreview.style.boxShadow = '';
+            slotPreview.style.background = '';
+        }, 2000);
+    }
+}
+
+function createSparkle(container, isGirl) {
+    const sparkle = document.createElement('div');
+    sparkle.innerHTML = '✨';
+    sparkle.style.cssText = `
+        position: absolute;
+        font-size: 1.5rem;
+        color: ${isGirl ? '#ec4899' : '#3b82f6'};
+        pointer-events: none;
+        z-index: 100;
+        left: ${20 + Math.random() * 60}%;
+        top: ${20 + Math.random() * 60}%;
+        animation: sparkleUp 1s ease-out forwards;
+    `;
+    
+    container.appendChild(sparkle);
+    
+    setTimeout(() => {
+        if (sparkle.parentNode) {
+            sparkle.parentNode.removeChild(sparkle);
+        }
+    }, 1000);
 }
 
 function initSmoothScrolling() {
@@ -207,6 +381,26 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Add CSS for sparkle animation
+const sparkleStyle = document.createElement('style');
+sparkleStyle.textContent = `
+    @keyframes sparkleUp {
+        0% {
+            transform: scale(0) translateY(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1) translateY(-20px);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(0) translateY(-40px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(sparkleStyle);
 
 // Initialize button enhancements when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
